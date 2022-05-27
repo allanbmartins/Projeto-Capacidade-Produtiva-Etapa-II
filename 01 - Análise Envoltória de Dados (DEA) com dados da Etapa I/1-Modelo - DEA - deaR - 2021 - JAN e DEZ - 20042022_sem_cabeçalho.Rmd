@@ -1,0 +1,306 @@
+---
+title: "Projeto de Capacidade Produtiva- Fase II"
+subtitle: FALSE
+author: "Allan B. Martins"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+    html_document:
+      highlight: espresso
+      includes:
+        in_header: cabecalhofinal_branco.html
+      theme: flatly
+      number_sections: TRUE
+      toc: TRUE
+      toc_float:
+        collapsed: TRUE
+        smooth_scroll: TRUE
+---
+
+```{r Pacotes, warning = FALSE, message = FALSE, echo = FALSE}
+library(dplyr)#pacote mais útil para realizar transformação de dados.
+library(tidyverse)#pacote guarda-chuva que consolida uma série de ferramentas que fazem parte o ciclo da ciência de dados.
+library(cluster)# Métodos de análise de cluster.
+library(factoextra)#Fornece algumas funções fáceis de usar para extrair e visualizar a saída de análises de dados multivariadas.
+library(readxl)#O pacote readxl facilita a obtenção de dados do Excel e para o R.
+library(rstatix)#Provides a simple and intuitive pipe-friendly framework, for performing basic   statistical tests.
+# library(emmeans)# Pacote para obter médias marginais estimadas (EMMs) para muitos modelos lineares, lineares generalizados e mistos.
+library(ggplot2)#Um sistema para a criação 'declarativa' de gráficos, baseado na "Gramática dos Gráficos".
+library(knitr)#Fornece uma ferramenta de uso geral para geração de relatórios dinâmicos em R usando técnicas de programação literária.
+library(kableExtra)#Construa tabelas complexas em HTML ou 'LaTeX' usando 'kable ()' de 'knitr' e a sintaxe de tubulação de 'magrittr'.
+library(htmltools)#Ferramentas para geração e saída de HTML.
+# library(zoo)#Uma classe S3 com métodos para observações indexadas totalmente ordenadas.
+library(lmtest)#Uma coleção de testes, conjuntos de dados e exemplos para verificação diagnóstica em modelos de regressão linear.
+library(rmarkdown)#Converta documentos R Markdown em uma variedade de formatos.
+library(cowplot)#Fornece vários recursos que ajudam a criar figuras de qualidade de publicação com 'ggplot2'.
+library(SciViews) #Funções para instalar adições de SciViews ao R e mais ferramentas.
+library(forecast) #Métodos e ferramentas para exibir e analisar previsões de séries temporais univariadas,
+#library(car) #Conflito
+library(data.table)
+library(corrplot)
+library(reshape2)
+library(openxlsx)
+library(scales)
+library(tibble)
+
+# ctrl + shift + c
+
+library(outliers) # Pacote para tratamento de outliers
+library(deaR)
+library (robustX) # Se esse pacote não estiver instalado, instalar utilizando o comando install.packages("robustX")
+
+#library(Benchmarking)
+
+```
+
+```{r Item, warning = FALSE, message = FALSE, echo = FALSE}
+options(scipen=999)
+```
+# Técnica utilizada para criação dos Modelos de Análise Envoltória de Dados (DEA) - 2021 JAN e DEZ - {-}
+
+Contextualização 
+
+A Metodologia DEA (Data Envelopment Analysis)
+
+O primeiro modelo DEA foi proposto por Charnes, Coooper e Rhodes (1978) que, a seu tributo, se designou DEA – CCR, tinha orientação ao input e pressupunha a existência de retornos constantes de escala (CRS). Esta metodologia procura estabelecer quais as empresas, de uma dada amostra, determinam a superfície envolvente ou fronteira de produção eficiente.
+
+A metodologia DEA é aplicada na avaliação unitária de unidades homogéneas ou empresas, tais como hotéis. A unidade em avaliação é normalmente denominada como uma unidade de tomada de decisão (DMU, Data Managment Unit) que converte inputs em outputs, facto pelo qual em qualquer estudo a sua identificação é um aspeto difícil e crucial. Segundo DEA, o desempenho de uma empresa é avaliado em relação a uma fronteira eficiente, que é construída através da combinação linear das empresas existentes. O procedimento baseia-se numa formulação matemática sofisticada.
+
+Usaremos a função "deaR" desse pacote e seus padrões (default), com seu conjunto de funções para Análise de Envoltório de Dados. Ele executa modelos DEA clássicos e difusos
+
+# Etapa I - Estruturação do banco de dados {.tabset .tabset-fade .tabset-pills}
+
+```{r Leitura banco de dedos completo, warning = FALSE, message = FALSE, echo = FALSE}
+#Importando
+setwd("D:/01_Digea/02_Proj/02_Proj_CP/03 Fase II/01 DEA/01 Modelo 01")
+
+bd_m_dea_12_2021 <- read_excel("bd_m_dea_12_2021.xlsx", sheet=1, col_names=TRUE)
+```
+
+## Universo Estatístico
+```{r Visualização banco 1, warning = FALSE, message = FALSE, echo = FALSE}
+glimpse(bd_m_dea_12_2021)
+```
+
+## Tabela de dados 
+```{r Visualização banco 2, warning = FALSE, message = FALSE, echo = FALSE}
+kable(bd_m_dea_12_2021, col.names = c("UF", "Força 2021", "Custeio Exec.", "UBP Real"),"html") %>%
+   kable_styling(bootstrap_options = c("striped"),
+                full_width = T,
+                font_size = 15) %>%
+   scroll_box(height = "300px")
+```
+
+
+# Etapa II - Identificação de Outliers {.tabset .tabset-fade .tabset-pills}
+<!-- ##Identificando e tratando Outliers -->
+
+```{r Sumário variáveis 1, warning = FALSE, message = FALSE, echo = FALSE}
+bd_m_dea_12_2021_gd <- bd_m_dea_12_2021 %>% select(x1_ft_2021, x2_cust_2021_jan_dez, y_ubp_real_2021_jan_dez)
+#summary(bd_m_dea_02_2022)
+```
+
+## Gráfico de barra para visualização de outliers 
+```{r graficos variáveis 1, warning = FALSE, message = FALSE, echo = FALSE}
+b1 <- ggplot(bd_m_dea_12_2021, aes(uf,x1_ft_2021, outline = T))+ 
+        geom_boxplot(outlier.color = "red", show.legend = F, alpha = .5)+
+        theme_classic(base_size = 8) +
+        xlab("UF") + 
+        ylab("FT 2021")
+
+b2 <- ggplot(bd_m_dea_12_2021, aes(uf,x2_cust_2021_jan_dez, outline = T))+ 
+        geom_boxplot(outlier.color = "red", show.legend = F, alpha = .5)+
+        theme_classic(base_size = 8) +
+        xlab("UF") + 
+        ylab("Custeio Real - 2022 - JanFev")
+
+b3 <- ggplot(bd_m_dea_12_2021, aes(uf,y_ubp_real_2021_jan_dez, outline = T))+ 
+        geom_boxplot(outlier.color = "red", show.legend = F, alpha = .5)+
+        theme_classic(base_size = 8) +
+        xlab("UF") + 
+        ylab("UBP Real - 2022 - JanFev")
+
+plot_grid(b1,b2,b3, main="Boxplot Variáveis", ncol = 1, nrow = 3,rel_widths = c(1, 1))
+```
+
+## Gráfico de dispersão para visualização de outliers
+```{r graficos variáveis 2, warning = FALSE, message = FALSE, echo = FALSE}
+verif1 <- melt(bd_m_dea_12_2021_gd, id.vars="y_ubp_real_2021_jan_dez")
+
+ggplot(verif1)+
+  geom_jitter(aes(value,y_ubp_real_2021_jan_dez, colour=variable))+ geom_smooth(aes(value,y_ubp_real_2021_jan_dez, colour=variable),method = lm)+
+  facet_wrap(~variable,scales = "free_x")+
+  scale_color_manual("Variáveis X",
+                     values = c("red", "blue"),
+                     labels = c("Força 2021", "Custeio 2021 - JanDez"))+
+  labs(x = "valores", y = "UBP_Real 2021 - JanDez")+
+  theme(legend.position = "bottom")
+```
+
+
+<!-- ## Algoritmo BACON - Detecção de outlier como suporte para o controle estatístico do processo multivariado -->
+
+<!-- O algoritmo de busca sucessiva detecta pontos discordantes do restante do agrupamento de dados que, quando se encontram muito distantes ou têm características muito diferentes, são denominados outliers. O algoritmo BACON foi utilizado para a detecção de tais ocorrências, o qual parte de um pequeno subconjunto, comprovadamente livre de outliers, dos dados originais e vai adicionando novas informações, que também não são outliers, a esse subconjunto inicial até que nenhuma informação possa mais ser absorvida. Uma das vantagens da utilização desse algoritmo é que ele combate os fenômenos do mascaramento e do esmagamento que alteram as estimativas da média e da covariância. -->
+
+<!-- ### BACON - Detecção de outlier como suporte para o controle estatístico do processo multivariado -->
+```{r graficos variáveis g1, warning = FALSE, message = FALSE, echo = FALSE}
+#robustX: eXperimental Functionality for Robust Statistics - eXperimental, eXtraneous, or eXtraordinary Functionality for Robust Statistics. In other words, methods which are not yet well established, often related to methods in package robustbase.
+
+#mvBACON: BACON: Blocked Adaptive Computationally-Efficient Outlier Nominators - This function performs an outlier identification algorithm to the data in the x array [n x p] and y vector [n] following the lines described by Hadi et al. for their BACON outlier procedure.
+
+# outliers <-  robustX::mvBACON(bd_m_dea_02_2022[c("x1_ft_2021","x2_cust_2022_jan_fev","y_ubp_real_2022_jan_fev")],
+#                             alpha = 0.95, init.sel = "Mahalanobis")
+# bd_m_dea_02_2022_out <-  within(bd_m_dea_02_2022,
+#                    {outliers = outliers$subset})
+# table(bd_m_dea_02_2022_out$outliers)
+# bd_m_dea_02_2022_out <-  subset(bd_m_dea_02_2022_out, outliers == TRUE)
+# bd_m_dea_02_2022_out$outliers = NULL
+# remove(outliers)
+```
+
+<!-- ### Sumário das Variáveis antes e depois do tratamento de outliers -->
+<!-- ```{r graficos Sumário, warning = FALSE, message = FALSE, echo = FALSE} -->
+<!-- # Estatística descritiva -->
+<!-- summary(bd_m_dea_02_2022[c("x1_ft_2021","x2_cust_2022_jan_fev","y_ubp_real_2022_jan_fev")]) -->
+<!-- summary(bd_m_dea_02_2022_out[c("x1_ft_2021","x2_cust_2022_jan_fev","y_ubp_real_2022_jan_fev")]) -->
+<!-- ``` -->
+
+<!-- ### Gráfico de barra para visualização de outliers depois tratamento -->
+<!-- ```{r graficos variáveis g2, warning = FALSE, message = FALSE, echo = FALSE} -->
+<!-- b1 <- ggplot(bd_m_dea_02_2022_out, aes(uf,x1_ft_2021, outline = T))+  -->
+<!--         geom_boxplot(outlier.color = "red", show.legend = F, alpha = .5)+ -->
+<!--         theme_classic(base_size = 8) + -->
+<!--         xlab("UF") +  -->
+<!--         ylab("FT 2021") -->
+
+<!-- b2 <- ggplot(bd_m_dea_02_2022_out, aes(uf,x2_cust_2022_jan_fev, outline = T))+  -->
+<!--         geom_boxplot(outlier.color = "red", show.legend = F, alpha = .5)+ -->
+<!--         theme_classic(base_size = 8) + -->
+<!--         xlab("UF") +  -->
+<!--         ylab("Custeio Real - 2022 - JanFev") -->
+
+<!-- b3 <- ggplot(bd_m_dea_02_2022_out, aes(uf,y_ubp_real_2022_jan_fev, outline = T))+  -->
+<!--         geom_boxplot(outlier.color = "red", show.legend = F, alpha = .5)+ -->
+<!--         theme_classic(base_size = 8) + -->
+<!--         xlab("UF") +  -->
+<!--         ylab("UBP Real - 2022 - JanFev") -->
+
+<!-- plot_grid(b1,b2,b3, main="Boxplot Variáveis depois do tratamento de outliers", ncol = 1, nrow = 3,rel_widths = c(1, 1)) -->
+<!-- ``` -->
+
+
+# Etapa III - Geração Modelos de Análise Envoltória de Dados (DEA) - 2021 JAN e DEZ - {.tabset .tabset-fade .tabset-pills}
+
+Contextualização
+
+A Metodologia DEA (Data Envelopment Analysis)
+
+O primeiro modelo DEA foi proposto por Charnes, Coooper e Rhodes (1978) que, a
+seu tributo, se designou DEA – CCR, tinha orientação ao input e pressupunha a
+existência de retornos constantes de escala (CRS). Esta metodologia procura
+estabelecer quais as empresas, de uma dada amostra, determinam a superfície
+envolvente ou fronteira de produção eficiente. A distância radial de uma empresa, em
+9Documento 1: Metodologia DEA – Eficiência Global, Alocativa e Técnica
+relação à fronteira, fornece a sua medida de ineficiência. O segundo modelo DEA
+proposto apresenta a hipótese de retornos variáveis de escala (VRS) e é conhecido como
+DEA – BCC (Banker, Charnes e Cooper). 
+
+A metodologia DEA é aplicada na avaliação unitária de unidades homogéneas ou
+empresas, tais como hotéis. A unidade em avaliação é normalmente denominada como
+uma unidade de tomada de decisão (DMU, Data Managment Unit) que converte inputs
+em outputs, facto pelo qual em qualquer estudo a sua identificação é um aspeto difícil e
+crucial. Segundo DEA, o desempenho de uma empresa é avaliado em relação a uma
+fronteira eficiente, que é construída através da combinação linear das empresas
+existentes. O procedimento baseia-se numa formulação matemática sofisticada.
+
+Usaremos a função "deaR" desse pacote e seus padrões (default), com seu conjunto 
+de funções para Análise de Envoltório de Dados. Ele executa modelos DEA clássicos e difusos
+
+## Resultados de eficiência
+```{r Data Envelopment Analysis: R deaR, warning = FALSE, message = FALSE, echo = FALSE}
+#cheks whether an R object is of deadata class or not
+#(bd_m_dea_02_2022)
+
+#Create a "read_data" object
+data_bd_m_dea_12_2021 <- read_data(bd_m_dea_12_2021, dmus = 1,
+                          ni = 2,
+                          no = 1)
+
+#Solve the 2 stage DEA model "oi" ou "oo"  / "vrs" ou "crs"
+modelo_basico_1 <- model_basic(data_bd_m_dea_12_2021,
+                              orientation = c("io"),
+                              rts = c("crs"))
+
+# efficiencies(modelo_basico_1) #show results
+# rts (modelo_basico_1)
+# slacks (modelo_basico_1)
+# references(modelo_basico_1) #show local rts
+# targets(modelo_basico_1)
+# lambdas(modelo_basico_1)
+# 
+
+#Estimating Efficiency scores
+efficiencies(modelo_basico_1)
+
+# eff <- efficiencies(modelo_basico_1)
+# 1/eff
+
+#summary(modelo_basico_1)
+
+```
+
+## Gráfico de barra
+Percentual de aproximação com a fronteira de eficiência 100% nos estados da RBMLQ-I
+```{r graficos resultado eficiencia g1, warning = FALSE, message = FALSE, echo = FALSE}
+bd_resultsDEA_2021_jan_dez <- read_excel("bd_resultsDEA_2021_jan_dez.xlsx", sheet=1, col_names=TRUE)
+
+# Ordena as colunas crescentes
+bd_resultsDEA_2021_jan_dez$uf <- factor(as.character(bd_resultsDEA_2021_jan_dez$uf), levels = bd_resultsDEA_2021_jan_dez$uf[order(bd_resultsDEA_2021_jan_dez$perc100)])
+
+#Grafico de barras na horizontal
+g1 <- ggplot(data = bd_resultsDEA_2021_jan_dez, aes(x= perc100,y = uf,))+ 
+      geom_col(aes(fill = eficiencia))+
+      geom_text(aes(label = round(perc100, 1)), hjust = 0.1)+ # Acrescenta números ao gráfico
+      theme_classic(base_size = 8) +
+      xlab("Percentual de aproximação com a fronteira de eficiência 100%")+
+      ylab("ESTADOS")
+
+plot_grid(g1, main="ANÁLISE DEA - 2021 - Jan  a Dez", ncol = 1, nrow = 1,rel_widths = c(1, 1))
+
+```
+
+# Diversos {.tabset .tabset-fade}
+
+## Créditos - Participantes do Projeto Capacidade Produtiva:  
+  
+**PATROCINADORES DO PROJETO**  
+##
+
+**COORDENADORES DO PROJETO**  
+## 
+
+**MEMBROS DO PROJETO**  
+Allan Batista Martins,  
+##
+  
+
+
+## Material de Apoio
+
+* Tutorial - Data Envelopment Analysis with deaR: [](https://www.uv.es/dearshiny/Tutoriales_deaR/Tutorial_deaR_english.pdf)
+
+
+* Tratamento de Outliers (Bacon) - R na Pesquisa Contábil: [Alessanderson Jacó de Carvalho](https://youtu.be/hfO5LLbRioY)
+
+* PLAYLIST - R na Pesquisa Contábil (Parte 1 ao 20): [](https://www.youtube.com/playlist?list=PLF3Sjk1EY74ZcUWHE6ZDPHFRu9zp_20gD)  
+
+* Utilização da metodologia DEA (Data Envelopment Analysis) para avaliar o impacto das TIC sobre a produtividade na indústria da hospitalidade: [](https://journals.openedition.org/viatourism/1002#tocto2n2)
+
+* PLAYLIST - Criando gráficos no R com o ggplot2 (Parte 1 ao 2): [Fernanda Peres](https://youtu.be/DYsPRa3vpf0)  
+
+* PLAYLIST - R Markdown: Gerando relatórios usando o R (Parte 1 ao 5): [Fernanda Peres](https://youtu.be/obxa5VH4WvY)  
+
+* Minicurso R - UFPR: [UFPR](https://youtu.be/obxa5VH4WvY)  
+
+* R Markdown: The Definitive Guide: [Yihui Xie, J. J. Allaire, Garrett Grolemund](https://bookdown.org/yihui/rmarkdown/)
+
+  

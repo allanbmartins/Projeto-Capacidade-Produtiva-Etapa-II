@@ -1,0 +1,1 @@
+Análise Envoltória de Dados (DEA) com dados da Etapa I - Utilização de DEA entre as UF usando a Metodologia DEA (Data Envelopment Analysis) - Segundo DEA, o desempenho de uma empresa é avaliado em relação a uma fronteira eficiente, que é construída através da combinação linear das empresas existentes. O procedimento baseia-se numa formulação matemática sofisticada.
