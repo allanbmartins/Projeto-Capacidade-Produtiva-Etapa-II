@@ -1,0 +1,362 @@
+---
+title: "Projeto de Capacidade Produtiva- Fase II"
+subtitle: FALSE
+author: "Allan B. Martins"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+    html_document:
+      highlight: espresso
+      includes:
+        in_header: cabecalhofinal_branco.html
+      theme: flatly
+      number_sections: TRUE
+      toc: TRUE
+      toc_float:
+        collapsed: TRUE
+        smooth_scroll: TRUE
+---
+
+```{r Pacotes, warning = FALSE, message = FALSE, echo = FALSE}
+library(dplyr)#pacote mais útil para realizar transformação de dados.
+library(tidyverse)#pacote guarda-chuva que consolida uma série de ferramentas que fazem parte o ciclo da ciência de dados.
+#library(cluster)# Métodos de análise de cluster.
+library(FactoMineR) #FactoMineR é um pacote R dedicado à análise de dados exploratória multivariada.
+library(factoextra)#Fornece algumas funções fáceis de usar para extrair e visualizar a saída de análises de dados multivariadas.
+library(readxl)#O pacote readxl facilita a obtenção de dados do Excel e para o R.
+#library(rstatix)#Provides a simple and intuitive pipe-friendly framework, for performing basic   statistical tests.
+# library(emmeans)# Pacote para obter médias marginais estimadas (EMMs) para muitos modelos lineares, lineares generalizados e mistos.
+library(ggplot2)#Um sistema para a criação 'declarativa' de gráficos, baseado na "Gramática dos Gráficos".
+library(knitr)#Fornece uma ferramenta de uso geral para geração de relatórios dinâmicos em R usando técnicas de programação literária.
+library(kableExtra)#Construa tabelas complexas em HTML ou 'LaTeX' usando 'kable ()' de 'knitr' e a sintaxe de tubulação de 'magrittr'.
+library(htmltools)#Ferramentas para geração e saída de HTML.
+# library(zoo)#Uma classe S3 com métodos para observações indexadas totalmente ordenadas.
+#library(lmtest)#Uma coleção de testes, conjuntos de dados e exemplos para verificação diagnóstica em modelos de regressão linear.
+library(rmarkdown)#Converta documentos R Markdown em uma variedade de formatos.
+library(cowplot)#Fornece vários recursos que ajudam a criar figuras de qualidade de publicação com 'ggplot2'.
+library(SciViews) #Funções para instalar adições de SciViews ao R e mais ferramentas.
+#library(forecast) #Métodos e ferramentas para exibir e analisar previsões de séries temporais univariadas,
+#library(car) #Conflito
+#library(data.table) #data.table fornece uma versão de alto desempenho dos R's base com sintaxe e aprimoramentos de recursos para facilitar o uso, conveniência e velocidade de programação.data.frame
+#library(corrplot) #O corrplot do pacote R fornece uma ferramenta exploratória visual na matriz de correlação que suporta reordenamento variável automático para ajudar a detectar padrões ocultos entre variáveis.
+#library(reshape2) #reshape2 is superseded: only changes necessary to keep it on CRAN will be made. We recommend using tidyr instead.
+library(openxlsx) # Este pacote R simplifica a criação de arquivos fornecendo uma interface de alto nível para escrever, estilizar e editar planilhas. Através do uso do Rcpp, os tempos de leitura/gravação são comparáveis aos pacotes xlsx
+#library(scales) #O uso mais comum do pacote de escalas é personalizar para controlar a aparência de rótulos de eixo e legenda.
+#library(tibble) #Um tibble, ou , é uma reimaginação moderna do data.frame, mantendo que o tempo provou ser eficaz, e jogando fora o que não é.
+
+# ctrl + shift + c
+
+#library(outliers) # Pacote para tratamento de outliers
+#library(deaR) #Conjunto de funções para Análise de Envoltório de Dados. Ele executa modelos DEA clássicos e difusos.
+#library (robustX) # Se esse pacote não estiver instalado, instalar utilizando o comando install.packages("robustX")
+#library(Benchmarking) #Métodos para análise de fronteiras, Análise de Envoltório de Dados (DEA), sob diferentes premissas tecnológicas (fdh, vrs, drs, crs, irs, add/frh e fdh+), e utilizando diferentes medidas de eficiência (baseada em entrada, baseada em saída, gráfico hiperbólico, aditivo, super e eficiência direcional).
+
+library(formattable) #O pacote “formatável” fornece métodos para criar vetores formatáveis e objetos de quadro de dados.
+#library(plyr) #O pacote plyr é um conjunto de ferramentas limpas e consistentes que implementam o padrão split-apply-combine em R. Este é um padrão extremamente comum na análise de dados: você resolve um problema complexo dividindo-o em pequenos pedaços, fazendo algo com cada peça e, em seguida, combinando os resultados novamente.
+
+#library(sqldf) #A função sqldf() é normalmente aprovada um único argumento que é uma instrução de seleção SQL onde os nomes de tabela são nomes comuns de quadros de dados R. sqldf() configura de forma transparente um banco de dados, importa os quadros de dados para esse banco de dados, executa a seleção SQL ou outra declaração e retorna o resultado usando uma heurística para determinar qual classe atribuir a cada coluna do quadro de dados retornado. As funções sqldf() ou leitura.csv.sql() também podem ser usadas para ler arquivos filtrados em R, mesmo que os arquivos originais sejam maiores do que o próprio R pode lidar. Backends 'RSQLite', 'RH2', 'RMySQL' e 'RPostgreSQL' são suportados.
+
+```
+
+```{r configuracoes, warning = FALSE, message = FALSE, echo = FALSE}
+remove(list=ls())
+
+#Define qtd de casas decimais
+options(scipen=999)
+options(digits = 2)
+
+#Defini padrões para textos dos títulos
+ano <- ("2021")
+periodo <- ("JAN A DEZ")
+descricao <- ("Variáveis estruturantes")
+versao <- ("v5")
+
+```
+
+```{r var xxx Leitura banco de dedos completo, warning = FALSE, message = FALSE, echo = FALSE}
+#Importando
+setwd("D:/01_Digea/02_Proj/02_Proj_CP/03 Fase II/01 DEA/01 Modelo 02/04 ACP")
+
+#bd_acp_var <- read_excel("xxxxxxxxx.xlsx", sheet=1, col_names=TRUE)
+
+bd_acp <- read_excel(file.choose(), sheet=1, col_names=TRUE)
+
+var_estruturantes <- colnames(bd_acp)
+
+```
+
+# ACP **`r ano`** - **`r periodo`** - **`r descricao`** - (**`r versao`**)
+
+# Técnica utilizada para PCA análise de componentes principais acp ou pca - {-}
+
+Contextualização 
+
+A Metodologia ANÁLISE DE COMPONENTES PRINCIPAIS
+
+A Análise de Componentes Principais ou PCA (Principal Component Analysis) é uma técnica de análise multivariada que pode ser usada para analisar inter-relações entre um grande número de variáveis e explicar essas variáveis em termos de suas dimensões inerentes (Componentes).
+
+O objetivo é encontrar um meio de condensar a informação contida em várias variáveis originais em um conjunto menor de variáveis estatísticas (componentes) com uma perda mínima de informação.
+
+O número de componentes principais se torna o número de variáveis consideradas na análise, mas geralmente as primeiras componentes são as mais importantes já que explicam a maior parte da variação total.
+
+As componentes principais em geral são extraídas via matriz de covariância, mas também podem ser extraídas via matriz de correlação. baseia-se numa formulação matemática sofisticada.
+
+Usaremos a função "factoextra" e "FactoMineR" desse pacote factoextra é um pacote R que facilita a extração e visualização da saída de análises exploratórias de dados multivariados, incluindo:
+
+Análise de Componentes Principais (PCA), que é usada para resumir as informações contidas em dados multivariados contínuos (ou seja, quantitativos) reduzindo a dimensionalidade dos dados sem perder informações importantes.
+
+
+## Análises por variável estruturante {.tabset .tabset-fade .tabset-pills}
+
+O banco de dados analisado traz os dados das variáveis estruturantes que são **`r var_estruturantes[7]`**, **`r var_estruturantes[8]`**,**`r var_estruturantes[9]`**,**`r var_estruturantes[10]`**,**`r var_estruturantes[11]`**,**`r var_estruturantes[12]`**,**`r var_estruturantes[13]`**, e **`r var_estruturantes[14]`**. Por meio da técnica de ACP para definir pesos entre as variáveis estruturantes criação de variável "INFRA" para a etapa II do projeto capacidade produtiva.
+
+### Etapa I - Estruturação do banco de dados  {.tabset .tabset-fade .tabset-pills}
+
+
+```{r Filtro do banco de dados 1a, warning = FALSE, message = FALSE, echo = FALSE}
+#Prepara o banco só com a colunas indicadas para avaliar o vif
+prepara_bd <- function(bd_temp){
+a <- bd_temp
+return (a)
+}
+bd_acp_var <- prepara_bd(bd_acp[7:14])
+
+#(bd_zy_zf_zs_vif) #Ver a estrutura dos dados de BDCP
+```
+
+```{r var xxx Sumário preparação 1, warning = FALSE, message = FALSE, echo = FALSE}
+#na.omit()A função na linguagem R é usada para omitir todos os casos desnecessários do quadro de dados, array ou vetor
+
+#Remove qualquer dados nulo ou  faltante presente nos dados
+
+bd_acp_var.omit <- na.omit(bd_acp_var)
+
+#summary(xxxxx)
+```
+
+```{r var xxx criar subconjunto acp 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Criar sbconjuntos de individuos ativos (linhas) e variáveis ativas (colunas) para análise
+
+bd_acp_var.omit.active <- bd_acp_var.omit[1:26, 1:8]
+
+#summary(xxxxx)
+```
+
+```{r var xxx vizualizar dados trab1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Visualizar os dados
+
+#(bd_acp_geo_omit.active)
+#head(bd_acp_geo_omit.active[, 1:2],26)
+```
+
+```{r var xxx padronização dos dados 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#O FactoMiner já faz a padronização automáticamente não sendo necessário uso do scale
+
+#bd_acp_geo_omit.active <- scale(bd_acp_geo_omit.active)
+
+```
+
+
+```{r var xxx Visualização banco 1B, warning = FALSE, message = FALSE, echo = FALSE}
+#### Banco de dados variáveis estruturantes
+#glimpse(bd_acp_var)
+```
+
+
+
+```{r Visualização banco de dados 1c, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#### Tabela de dados variáveis estruturantes
+#Visualiza o banco em forma de tabela dinâmica
+bd_tabela_dados <- function(bd_temp){
+# kable(bd_temp, col.names = c("UF", "zy_UBP_1000_HAB", "zy_REC_TRANSF", "zy_CUSTO_UBP", "zf_CUSTEIO_T", "zf_FTP", "zs_ENERG", "zs_TRANSP", "zs_TELECOM", "zs_SNB", "zs_ECON", "zs_SEG_PUB", "zs_GEO", "zs_ESTAB_PER_CAPTA"),"html") %>%
+kable(bd_temp,"html",caption = "Tabela de dados variáveis estruturantes") %>%
+   kable_styling(bootstrap_options = c("striped"),
+                full_width = T,
+                font_size = 15) %>%
+   scroll_box(height = "600px")
+}
+bd_tabela_dados(bd_acp_var.omit.active)
+
+```
+
+
+### Etapa II - Análise de Componentes Principais (PCA)  {.tabset .tabset-fade .tabset-pills}
+
+
+```{r var gerar PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+#Gerar o PCA
+gerar_pca <- function(bd_temp){
+a <- PCA(bd_temp,  graph = FALSE)
+return (a)
+}
+bd_acp_var.omit.active.pca <- gerar_pca(bd_acp_var.omit.active)
+
+# round(bd_acp_var.omit.active.pca$eig,3)
+
+```
+
+```{r var xxx EXTRAÇÃO PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Extrair a proporção de variância dos valores de componentes principais
+extrair_valores_pca <- function(bd_temp){
+a <- get_eigenvalue(bd_temp)
+return (a)
+}
+geo_eig.val <- extrair_valores_pca(bd_acp_var.omit.active.pca)
+geo_eig.val
+```
+
+#### Gráficos de contribuição das variáveis
+
+##### A função fviz_contrib() cria uma parcela de contribuições de linha/coluna. Uma linha tracejada de referência também é mostrada no barplot. Esta linha de referência corresponde ao valor esperado se a contribuição for uniforme.
+
+Para uma determinada dimensão, qualquer linha/coluna com contribuição acima da linha de referência poderia ser considerada como importante para contribuir para a dimensão.
+
+```{r var xxx preparando grafico 1 PCA 1, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Plotar no gráfico monstrando a proporção de variância de cada virável
+plotar_graf_bar1 <- function(bd_temp){
+a <- fviz_contrib(bd_temp, choice = "var", axes = c(1,3),
+                  title = "Gráfico monstrando a proporção de variância de cada variável nas dimensões Dim 1-3")
+return (a)
+} 
+plotar_graf_bar1(bd_acp_var.omit.active.pca)
+
+#help(fviz_eig)
+```
+
+##### A função fviz_eig() visualiza os valores de eigen (enredo scree). Mostre a porcentagem de variâncias explicadas por cada componente principal.
+
+```{r var xxx preparando grafico 2 PCA 1, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Plotar no gráfico monstrando a proporção de variância de cada virável
+plotar_graf_bar2 <- function(bd_temp){
+a <- fviz_eig(bd_temp, addlabels = TRUE, ylim = c(0,50),
+  main = "Gráfico monstrando a proporção de variância de cada dimensão")
+return (a)
+} 
+plotar_graf_bar2(bd_acp_var.omit.active.pca)
+
+#help(fviz_eig)
+```
+
+```{r var xxx preparando grafico 3 PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+#Extrair os resultados das variáveis do PCA para plotar no gráfico
+
+geo_var <- get_pca_var(bd_acp_var.omit.active.pca)
+geo_ind <- get_pca_ind(bd_acp_var.omit.active.pca)
+
+#geo_var
+#head(geo_var$coord)
+#head(geo_var$contrib)
+
+```
+
+##### Gráfico de variáveis. Variáveis correlacionadas positivas apontam para o mesmo lado da trama. Variáveis correlacionadas negativas apontam para lados opostos do gráfico.
+
+```{r var xxx plotar grafico 4 PCA 1, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Plotar gráfico do PCA
+plotar_graf_pca1 <- function(bd_temp){
+a <- fviz_pca_var(bd_temp, 
+                  #col.var = "cos2",
+                  col.var = "contrib",
+             #gradient.cols = c("#FFCC00", "#CC9933", "#660033", "#330033"),
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE,
+  title = "Gráfico - Variáveis PCA")
+return (a)
+} 
+plotar_graf_pca1(bd_acp_var.omit.active.pca)
+
+```
+
+```{r var xxxcriar grupo cluster 3 PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+#Criar grupo para cluster
+
+#var_grupo <- as.factor(bd_acp_geo_omit[,1])
+```
+
+
+```{r var xxx plotar grafico 5 PCA 1, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Plotar novamente usando o gráfico biplot
+plotar_graf_pca2 <- function(bd_temp){
+a <- fviz_pca_biplot(bd_temp, geom.ind = "point", col.var = "blue",pointshape = 21,pointsize = 1,fill.ind = bd_acp$uf)+
+  theme_bw()+
+  labs(title = "Gráfico - Indivíduos PCA",
+       fill= "UF")
+return (a)
+} 
+plotar_graf_pca2(bd_acp_var.omit.active.pca)
+
+```
+
+#### Extrair os resultados das variáveis
+```{r var xxx preparando grafico 4 PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+#Extrair os resultados das variáveis do PCA para plotar no gráfico
+
+b <- data.frame(geo_var$contrib) #Cria data-frame com os dados de contribuições das 5 dimenções
+b <- (b[,-4:-5]) #Reduz o data-frame com os dados de contribuições das 3 dimenções primeiras dimenções que são representativas
+b$Soma_Dim.1_3 <- b$Dim.1+b$Dim.2+b$Dim.3 #Cria uma coluna com a soma das 3 dimenções primeiras dimenções que são representativas
+b$percent_Dim.1_3 <- percent((b$Soma_Dim.1_3/sum(b$Soma_Dim.1_3)),2) #Calcula o percentual de proporção de representatividade da de cada variável e coloca em formato percentual com o método percent() neste pacote é usado para representar os vetores numéricos no formato de porcentagem.
+b <- rename(b, Dim1 = Dim.1, Dim2 = Dim.2, Dim3 = Dim.3, SomaDim13 = Soma_Dim.1_3, percentDim13 = percent_Dim.1_3) #Renomeia colunas removenco caracteres "_" e "."
+b <- b[order(b$percentDim13, decreasing=TRUE),] #Ordena a coluna de percentuais para decrestente
+
+```
+
+```{r Visualização banco de dados 1d, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 10}
+# #Visualiza o banco em forma de tabela dinâmica
+
+bd_geo_var <- function(bd_temp){
+kable(bd_temp, reorder = TRUE, na.rm = FALSE,"html",caption = "Resultados por variáveis acumulado por Dim 1-3") %>%
+   kable_styling(bootstrap_options = c("striped"),
+                full_width = T,
+                font_size = 15) %>%
+   scroll_box(height = "400px")
+}
+bd_geo_var(b)
+
+```
+
+```{r var xxx plotar sumário 1 PCA 1, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+##### sumário
+#facto_summarize(bd_acp_var.omit.active.pca, "var") # para variáveis
+
+```
+
+
+
+# Diversos {.tabset .tabset-fade}
+
+## Créditos - Participantes do Projeto Capacidade Produtiva:  
+  
+**PATROCINADORES DO PROJETO**  
+##
+
+**COORDENADORES DO PROJETO**  
+##
+
+**MEMBROS DO PROJETO**  
+Allan Batista Martins,  
+## 
+
+## Material de Apoio
+
+* Multivariate Data Analyses:[]https://rpkgs.datanovia.com/factoextra/index.html)
+
+* A Metodologia PCA: []https://operdata.com.br/blog/analise-de-componentes-principais/  
+
+* PCA análise de componentes principais acp ou pca:[]https://youtu.be/hmp9KIPb5Ig
+
+* PCA dúvidas e sugestões sobre análise de componentes principais:[]https://youtu.be/ATXoqEtNtdg
+
+* PLAYLIST - R na Pesquisa Contábil (Parte 1 ao 20):[]https://youtube.com/playlist?list=PLF3Sjk1EY74ZcUWHE6ZDPHFRu9zp_20gD  
+
+* PLAYLIST - Criando gráficos no R com o ggplot2 (Parte 1 ao 2): [Fernanda Peres]https://youtu.be/DYsPRa3vpf0  
+
+* PLAYLIST - R Markdown: Gerando relatórios usando o R (Parte 1 ao 5): [Fernanda Peres]https://youtu.be/obxa5VH4WvY  
+
+* Minicurso R - UFPR: [UFPR]https://youtu.be/obxa5VH4WvY  
+
+* R Markdown: The Definitive Guide: [Yihui Xie, J. J. Allaire, Garrett Grolemund]https://bookdown.org/yihui/rmarkdown/
+
+  
