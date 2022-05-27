@@ -1,0 +1,8 @@
+Preparação das variáveis estruturantes - Escala positiva e negativa
+
+Valor BASAL
+	Situação na qual o recorte regional do estudo representa, quando da comparação com outros locais, a condição menos favorável para operação de uma determinada unidade institucional (UI)
+Valor FRONTEIRIÇO:  
+	Refere-se à condição mais favorável para atuação de uma UI, em um determinado local de atuação.
+DESIGUALDADE ESTRUTURAL OU REGIONAL
+	Refere-se à variação entre os valores BASAIS e FRONTEIRIÇOS de atuação da unidades comparadas.
