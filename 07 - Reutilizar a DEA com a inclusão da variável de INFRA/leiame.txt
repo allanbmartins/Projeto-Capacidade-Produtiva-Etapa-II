@@ -1,0 +1,1 @@
+Reutilizar a DEA com a inclusão da variável de "INFRA", para verificar a eficiência das UF - A Metodologia DEA (Data Envelopment Analysis) - Segundo DEA, o desempenho de uma empresa é avaliado em relação a uma fronteira eficiente, que é construída através da combinação linear das empresas existentes. O procedimento baseia-se numa formulação matemática sofisticada
