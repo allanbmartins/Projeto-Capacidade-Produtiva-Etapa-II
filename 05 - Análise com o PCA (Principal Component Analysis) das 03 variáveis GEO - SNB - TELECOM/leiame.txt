@@ -1,0 +1,1 @@
+Análise com o PCA (Principal Component Analysis) das 03 variáveis GEO - SNB - TELECOM

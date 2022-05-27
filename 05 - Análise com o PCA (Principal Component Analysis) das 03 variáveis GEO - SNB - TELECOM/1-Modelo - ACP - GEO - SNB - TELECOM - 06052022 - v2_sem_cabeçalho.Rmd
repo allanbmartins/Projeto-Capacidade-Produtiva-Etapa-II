@@ -1,0 +1,550 @@
+---
+title: "Projeto de Capacidade Produtiva - Fase II"
+subtitle: FALSE
+author: "Allan B. Martins (CORED)"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+    html_document:
+      highlight: espresso
+      includes:
+        in_header: cabecalhofinal_branco.html
+      theme: flatly
+      number_sections: TRUE
+      toc: TRUE
+      toc_float:
+        collapsed: TRUE
+        smooth_scroll: TRUE
+---
+
+```{r Pacotes, warning = FALSE, message = FALSE, echo = FALSE}
+library(dplyr)#pacote mais útil para realizar transformação de dados.
+library(tidyverse)#pacote guarda-chuva que consolida uma série de ferramentas que fazem parte o ciclo da ciência de dados.
+#library(cluster)# Métodos de análise de cluster.
+library(FactoMineR) #FactoMineR é um pacote R dedicado à análise de dados exploratória multivariada.
+library(factoextra)#Fornece algumas funções fáceis de usar para extrair e visualizar a saída de análises de dados multivariadas.
+library(readxl)#O pacote readxl facilita a obtenção de dados do Excel e para o R.
+#library(rstatix)#Provides a simple and intuitive pipe-friendly framework, for performing basic   statistical tests.
+# library(emmeans)# Pacote para obter médias marginais estimadas (EMMs) para muitos modelos lineares, lineares generalizados e mistos.
+library(ggplot2)#Um sistema para a criação 'declarativa' de gráficos, baseado na "Gramática dos Gráficos".
+library(knitr)#Fornece uma ferramenta de uso geral para geração de relatórios dinâmicos em R usando técnicas de programação literária.
+library(kableExtra)#Construa tabelas complexas em HTML ou 'LaTeX' usando 'kable ()' de 'knitr' e a sintaxe de tubulação de 'magrittr'.
+library(htmltools)#Ferramentas para geração e saída de HTML.
+# library(zoo)#Uma classe S3 com métodos para observações indexadas totalmente ordenadas.
+#library(lmtest)#Uma coleção de testes, conjuntos de dados e exemplos para verificação diagnóstica em modelos de regressão linear.
+library(rmarkdown)#Converta documentos R Markdown em uma variedade de formatos.
+library(cowplot)#Fornece vários recursos que ajudam a criar figuras de qualidade de publicação com 'ggplot2'.
+library(SciViews) #Funções para instalar adições de SciViews ao R e mais ferramentas.
+#library(forecast) #Métodos e ferramentas para exibir e analisar previsões de séries temporais univariadas,
+#library(car) #Conflito
+#library(data.table) #data.table fornece uma versão de alto desempenho dos R's base com sintaxe e aprimoramentos de recursos para facilitar o uso, conveniência e velocidade de programação.data.frame
+#library(corrplot) #O corrplot do pacote R fornece uma ferramenta exploratória visual na matriz de correlação que suporta reordenamento variável automático para ajudar a detectar padrões ocultos entre variáveis.
+#library(reshape2) #reshape2 is superseded: only changes necessary to keep it on CRAN will be made. We recommend using tidyr instead.
+library(openxlsx) # Este pacote R simplifica a criação de arquivos fornecendo uma interface de alto nível para escrever, estilizar e editar planilhas. Através do uso do Rcpp, os tempos de leitura/gravação são comparáveis aos pacotes xlsx
+#library(scales) #O uso mais comum do pacote de escalas é personalizar para controlar a aparência de rótulos de eixo e legenda.
+#library(tibble) #Um tibble, ou , é uma reimaginação moderna do data.frame, mantendo que o tempo provou ser eficaz, e jogando fora o que não é.
+
+# ctrl + shift + c
+
+#library(outliers) # Pacote para tratamento de outliers
+#library(deaR) #Conjunto de funções para Análise de Envoltório de Dados. Ele executa modelos DEA clássicos e difusos.
+#library (robustX) # Se esse pacote não estiver instalado, instalar utilizando o comando install.packages("robustX")
+#library(Benchmarking) #Métodos para análise de fronteiras, Análise de Envoltório de Dados (DEA), sob diferentes premissas tecnológicas (fdh, vrs, drs, crs, irs, add/frh e fdh+), e utilizando diferentes medidas de eficiência (baseada em entrada, baseada em saída, gráfico hiperbólico, aditivo, super e eficiência direcional).
+
+```
+
+```{r Item, warning = FALSE, message = FALSE, echo = FALSE}
+options(scipen=999)
+```
+# Técnica utilizada para PCA análise de componentes principais acp ou pca - {-}
+
+Contextualização 
+
+A Metodologia ANÁLISE DE COMPONENTES PRINCIPAIS
+
+A Análise de Componentes Principais ou PCA (Principal Component Analysis) é uma técnica de análise multivariada que pode ser usada para analisar inter-relações entre um grande número de variáveis e explicar essas variáveis em termos de suas dimensões inerentes (Componentes).
+
+O objetivo é encontrar um meio de condensar a informação contida em várias variáveis originais em um conjunto menor de variáveis estatísticas (componentes) com uma perda mínima de informação.
+
+O número de componentes principais se torna o número de variáveis consideradas na análise, mas geralmente as primeiras componentes são as mais importantes já que explicam a maior parte da variação total.
+
+As componentes principais em geral são extraídas via matriz de covariância, mas também podem ser extraídas via matriz de correlação. baseia-se numa formulação matemática sofisticada.
+
+Usaremos a função "factoextra" e "FactoMineR" desse pacote factoextra é um pacote R que facilita a extração e visualização da saída de análises exploratórias de dados multivariados, incluindo:
+
+Análise de Componentes Principais (PCA), que é usada para resumir as informações contidas em dados multivariados contínuos (ou seja, quantitativos) reduzindo a dimensionalidade dos dados sem perder informações importantes.
+
+
+# Análises por variável estruturante {.tabset .tabset-fade .tabset-pills}
+
+## Variável GEO (Geográfico)
+
+### Etapa I - Estruturação do banco de dados {.tabset .tabset-fade .tabset-pills}
+
+```{r var geo Leitura banco de dedos completo, warning = FALSE, message = FALSE, echo = FALSE}
+#Importando
+setwd("D:/01_Digea/02_Proj/02_Proj_CP/03 Fase II/01 DEA/01 Modelo 02/02 ACP")
+
+
+bd_acp_geo <- read_excel("variavel_geo.xlsx", sheet=1, col_names=TRUE)
+
+```
+
+#### Universo Estatístico
+##### Banco de dados variável GEO (Geográfico) = geo1 (qtd_mun_front x qtd_mun_tot) e geo2 (area_front x area_tot_ori)
+```{r var geo Visualização banco 1B, warning = FALSE, message = FALSE, echo = FALSE}
+
+glimpse(bd_acp_geo)
+```
+
+#### Tabela de dados GEO
+```{r var geo Visualização banco 1T, warning = FALSE, message = FALSE, echo = FALSE}
+kable(bd_acp_geo, col.names = c("UF", "geo1_qtd_mun_front_x_qtd_mun_tot", "geo2_area_front_x_area_tot_ori"),"html") %>%
+   kable_styling(bootstrap_options = c("striped"),
+                full_width = T,
+                font_size = 15) %>%
+   scroll_box(height = "300px")
+```
+
+```{r var geo Sumário preparação 1, warning = FALSE, message = FALSE, echo = FALSE}
+#na.omit()A função na linguagem R é usada para omitir todos os casos desnecessários do quadro de dados, array ou vetor
+
+#Remove qualquer dados nulo ou  faltante presente nos dados
+
+bd_acp_geo_omit <- na.omit(bd_acp_geo)
+
+#summary(xxxxx)
+```
+
+### Etapa II - Análise de Componentes Principais ou PCA (Principal Component Analysis) {.tabset .tabset-fade .tabset-pills}
+
+```{r var geo criar subconjunto acp 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Criar sbconjuntos de individuos ativos (linhas) e variáveis ativas (colunas) para análise
+
+bd_acp_geo_omit.active <- bd_acp_geo_omit[1:26, 2:3]
+
+#summary(xxxxx)
+```
+
+```{r var geo vizualizar dados trab1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Visualizar os dados
+
+#(bd_acp_geo_omit.active)
+#head(bd_acp_geo_omit.active[, 1:2],26)
+```
+
+```{r var geo padronização dos dados 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#O FactoMiner já faz a padronização automáticamente não sendo necessário uso do scale
+
+bd_acp_geo_omit.active <- scale(bd_acp_geo_omit.active)
+
+```
+
+```{r geo gerar PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Gerar o PCA
+
+bd_acp_geo_omit.active_res.pca <- PCA(bd_acp_geo_omit.active,  graph = FALSE)
+
+```
+
+```{r var geo EXTRAÇÃO PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Extrair a proporção de variância dos valores de componentes principais
+
+geo_eig.val <- get_eigenvalue(bd_acp_geo_omit.active_res.pca)
+geo_eig.val
+```
+
+#### Gráficos de contribuição das variáveis
+
+```{r var geo preparando grafico 1 PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Plotar no gráfico monstrando a proporção de variância de cada virável
+
+fviz_contrib(bd_acp_geo_omit.active_res.pca, choice = "var", axes = c(1,2))
+
+#help(fviz_eig)
+```
+
+```{r var geo preparando grafico 2 PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Plotar no gráfico monstrando a proporção de variância de cada virável
+
+fviz_eig(bd_acp_geo_omit.active_res.pca, addlabels = TRUE, ylim = c(0,100),
+  main = "Gráfico monstrando a proporção de variância de cada variável")
+
+#help(fviz_eig)
+```
+
+#### Extrair os resultados das variáveis
+
+```{r var geo preparando grafico 3 PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Extrair os resultados das variáveis do PCA para plotar no gráfico
+
+geo_var <- get_pca_var(bd_acp_geo_omit.active_res.pca)
+geo_ind <- get_pca_ind(bd_acp_geo_omit.active_res.pca)
+
+geo_var
+head(geo_var$coord)
+head(geo_var$contrib)
+```
+
+```{r var geo plotar grafico 4 PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Plotar gráfico do PCA
+
+fviz_pca_var(bd_acp_geo_omit.active_res.pca, col.var = "blue")
+
+```
+
+```{r var geocriar grupo cluster 3 PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Criar grupo para cluster
+
+geo_grupo <- as.factor(bd_acp_geo_omit[,1])
+```
+
+
+```{r var geo plotar grafico 5 PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Plotar novamente usando o gráfico biplot
+
+fviz_pca_biplot(bd_acp_geo_omit.active_res.pca, geom.ind = "point", col.var = "blue",pointshape = 21,pointsize = 1,fill.ind = bd_acp_geo$uf)+
+  theme_bw()+
+  labs(title = "Gráfico PCA - Geografia",
+       fill= "UF")
+  
+```
+
+
+## Variável SNB (Saneamento Básico)
+
+### Etapa I - Estruturação do banco de dados {.tabset .tabset-fade .tabset-pills}
+
+```{r var snb Leitura banco de dedos completo, warning = FALSE, message = FALSE, echo = FALSE}
+#Importando
+setwd("D:/01_Digea/02_Proj/02_Proj_CP/03 Fase II/01 DEA/01 Modelo 02/02 ACP")
+
+bd_acp_snb <- read_excel("variavel_snb.xlsx", sheet=1, col_names=TRUE)
+```
+
+#### Universo Estatístico 
+
+##### Banco de dados Variável Saneamento básico (SNB) = Esgoto (percent_esgoto_2017) e Água (percent_agua_2017)
+```{r var snb Visualização banco 2B, warning = FALSE, message = FALSE, echo = FALSE}
+
+glimpse(bd_acp_snb)
+```
+
+#### Tabela de dados Saneamento básico
+```{r var snb Visualização banco 2T, warning = FALSE, message = FALSE, echo = FALSE}
+kable(bd_acp_snb, col.names = c("UF", "percent_esgoto_2017", "percent_agua_2017"),"html") %>%
+   kable_styling(bootstrap_options = c("striped"),
+                full_width = T,
+                font_size = 15) %>%
+   scroll_box(height = "300px")
+```
+
+```{r var snb Sumário preparação 1, warning = FALSE, message = FALSE, echo = FALSE}
+#na.omit()A função na linguagem R é usada para omitir todos os casos desnecessários do quadro de dados, array ou vetor
+
+#Remove qualquer dados nulo ou  faltante presente nos dados
+
+bd_acp_snb_omit <- na.omit(bd_acp_snb)
+
+#summary(xxxxx)
+```
+
+### Etapa II - Análise de Componentes Principais ou PCA (Principal Component Analysis) {.tabset .tabset-fade .tabset-pills}
+
+```{r var snb criar subconjunto acp 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Criar sbconjuntos de individuos ativos (linhas) e variáveis ativas (colunas) para análise
+
+bd_acp_snb_omit.active <- bd_acp_snb_omit[1:26, 2:3]
+
+#summary(xxxxx)
+```
+
+```{r var snb vizualizar dados trab1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Visualizar os dados
+
+#view(bd_acp_snb_omit.active)
+#head(bd_acp_snb_omit.active[, 1:2],26)
+
+```
+
+```{r var snb padronização dos dados 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#O FactoMiner já faz a padronização automáticamente não sendo necessário uso do scale
+
+bd_acp_snb_omit.active <- scale(bd_acp_snb_omit.active)
+
+```
+
+```{r var snb gerar PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Gerar o PCA
+
+bd_acp_snb_omit.active_res.pca <- PCA(bd_acp_snb_omit.active,  graph = FALSE)
+
+```
+
+```{r var snb EXTRAÇÃO PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Extrair a proporção de variância dos valores de componentes principais
+
+snb_eig.val <- get_eigenvalue(bd_acp_snb_omit.active_res.pca)
+snb_eig.val
+
+```
+
+#### Gráficos de contribuição das variáveis
+
+```{r var snb preparando grafico 1 PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Plotar no gráfico monstrando a proporção de variância de cada virável
+
+fviz_contrib(bd_acp_snb_omit.active_res.pca, choice = "var", axes = c(1,2))
+
+#help(fviz_eig)
+```
+
+```{r var snb preparando grafico 2 PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Plotar no gráfico monstrando a proporção de variância de cada virável
+
+fviz_eig(bd_acp_snb_omit.active_res.pca, addlabels = TRUE, ylim = c(0,90),
+  main = "Gráfico monstrando a proporção de variância de cada variável")
+
+#help(fviz_eig)
+```
+
+#### Extrair os resultados das variáveis de Telecom
+
+```{r var snb preparando grafico 3 PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Extrair os resultados das variáveis do PCA para plotar no gráfico
+
+snb_var <- get_pca_var(bd_acp_snb_omit.active_res.pca)
+snb_ind <- get_pca_ind(bd_acp_snb_omit.active_res.pca)
+
+geo_var
+head(snb_var$coord)
+head(snb_var$contrib)
+
+```
+
+```{r var snb plotar grafico 4 PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Plotar gráfico do PCA
+
+fviz_pca_var(bd_acp_snb_omit.active_res.pca, col.var = "blue")
+
+```
+
+```{r var snb criar grupo cluster 3 PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Criar grupo para cluster
+
+snb_grupo <- as.factor(bd_acp_snb_omit[,1])
+```
+
+
+```{r var snb plotar grafico 5 PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Plotar novamente usando o gráfico biplot
+
+fviz_pca_biplot(bd_acp_snb_omit.active_res.pca, geom.ind = "point", col.var = "blue",pointshape = 21,pointsize = 1,fill.ind = bd_acp_snb$uf)+
+  theme_bw()+
+  labs(title = "Gráfico PCA - Saneamento básico",
+       fill= "UF")
+
+```
+
+
+## Variável TELECOM (Telecomunicação)
+
+### Etapa I - Estruturação do banco de dados {.tabset .tabset-fade .tabset-pills}
+
+```{r var telecom Leitura banco de dedos completo, warning = FALSE, message = FALSE, echo = FALSE}
+#Importando
+setwd("D:/01_Digea/02_Proj/02_Proj_CP/03 Fase II/01 DEA/01 Modelo 02/02 ACP")
+
+bd_acp_telecom <- read_excel("variavel_telecom.xlsx", sheet=1, col_names=TRUE)
+
+```
+
+#### Universo Estatístico
+##### Banco de dados variável TELECOM (Telecomunicação) = telecom1 (qtd_ag_correios x total_população) e telecom2 (qtd_minicipios_fibra x tota_municipios)
+```{r var telecom Visualização banco 1B, warning = FALSE, message = FALSE, echo = FALSE}
+
+glimpse(bd_acp_telecom)
+```
+
+#### Tabela de dados telecom
+```{r var telecom Visualização banco 1T, warning = FALSE, message = FALSE, echo = FALSE}
+kable(bd_acp_telecom, col.names = c("UF", "ag_correios_por_pop_total", "percent_fribra_2021"),"html") %>%
+   kable_styling(bootstrap_options = c("striped"),
+                full_width = T,
+                font_size = 15) %>%
+   scroll_box(height = "300px")
+```
+
+```{r var telecom Sumário preparação 1, warning = FALSE, message = FALSE, echo = FALSE}
+#na.omit()A função na linguagem R é usada para omitir todos os casos desnecessários do quadro de dados, array ou vetor
+
+#Remove qualquer dados nulo ou  faltante presente nos dados
+
+bd_acp_telecom_omit <- na.omit(bd_acp_telecom)
+
+#summary(xxxxx)
+```
+
+### Etapa II - Análise de Componentes Principais ou PCA (Principal Component Analysis) {.tabset .tabset-fade .tabset-pills}
+
+```{r var telecom criar subconjunto acp 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Criar sbconjuntos de individuos ativos (linhas) e variáveis ativas (colunas) para análise
+
+bd_acp_telecom_omit.active <- bd_acp_telecom_omit[1:26, 2:3]
+
+#summary(xxxxx)
+```
+
+```{r var telecom vizualizar dados trab1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Visualizar os dados
+
+#(bd_acp_telecom_omit.active)
+#head(bd_acp_telecom_omit.active[, 1:2],26)
+```
+
+```{r var telecom padronização dos dados 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#O FactoMiner já faz a padronização automáticamente não sendo necessário uso do scale
+
+bd_acp_telecom_omit.active <- scale(bd_acp_telecom_omit.active)
+
+```
+
+```{r telecom gerar PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Gerar o PCA
+
+bd_acp_telecom_omit.active_res.pca <- PCA(bd_acp_telecom_omit.active,  graph = FALSE)
+
+```
+
+```{r var telecom EXTRAÇÃO PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Extrair a proporção de variância dos valores de componentes principais
+
+telecom_eig.val <- get_eigenvalue(bd_acp_telecom_omit.active_res.pca)
+telecom_eig.val
+```
+
+#### Gráficos de contribuição das variáveis
+
+```{r var telecom preparando grafico 1 PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Plotar no gráfico monstrando a proporção de variância de cada virável
+
+fviz_contrib(bd_acp_telecom_omit.active_res.pca, choice = "var", axes = c(1,2))
+
+#help(fviz_eig)
+```
+
+```{r var telecom preparando grafico 2 PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Plotar no gráfico monstrando a proporção de variância de cada virável
+
+fviz_eig(bd_acp_telecom_omit.active_res.pca, addlabels = TRUE, ylim = c(0,100),
+  main = "Gráfico monstrando a proporção de variância de cada variável")
+
+#help(fviz_eig)
+```
+
+#### Extrair os resultados das variáveis
+
+```{r var telecom preparando grafico 3 PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Extrair os resultados das variáveis do PCA para plotar no gráfico
+
+telecom_var <- get_pca_var(bd_acp_telecom_omit.active_res.pca)
+telecom_ind <- get_pca_ind(bd_acp_telecom_omit.active_res.pca)
+
+telecom_var
+head(telecom_var$coord)
+head(telecom_var$contrib)
+```
+
+```{r var telecom plotar grafico 4 PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Plotar gráfico do PCA
+
+fviz_pca_var(bd_acp_telecom_omit.active_res.pca, col.var = "blue")
+
+```
+
+```{r var telecom criar grupo cluster 3 PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Criar grupo para cluster
+
+telecom_grupo <- as.factor(bd_acp_telecom_omit[,1])
+```
+
+
+```{r var telecom plotar grafico 5 PCA 1, warning = FALSE, message = FALSE, echo = FALSE}
+
+#Plotar novamente usando o gráfico biplot
+
+fviz_pca_biplot(bd_acp_telecom_omit.active_res.pca, telecomm.ind = "point", col.var = "blue",pointshape = 21,pointsize = 1,fill.ind = bd_acp_telecom$uf)+
+  theme_bw()+
+  labs(title = "Gráfico PCA - Telecomunicações",
+       fill= "UF")
+  
+```
+
+
+
+# Diversos {.tabset .tabset-fade}
+
+## Créditos - Participantes do Projeto Capacidade Produtiva:  
+  
+**PATROCINADORES DO PROJETO**  
+##
+
+**COORDENADORES DO PROJETO**  
+## 
+
+**MEMBROS DO PROJETO**  
+Allan Batista Martins,  
+## 
+
+## Material de Apoio
+
+* Multivariate Data Analyses:[]https://rpkgs.datanovia.com/factoextra/index.html)
+
+* A Metodologia PCA: []https://operdata.com.br/blog/analise-de-componentes-principais/  
+
+* PCA análise de componentes principais acp ou pca:[]https://youtu.be/hmp9KIPb5Ig
+
+* PCA dúvidas e sugestões sobre análise de componentes principais:[]https://youtu.be/ATXoqEtNtdg
+
+* PLAYLIST - R na Pesquisa Contábil (Parte 1 ao 20):[]https://youtube.com/playlist?list=PLF3Sjk1EY74ZcUWHE6ZDPHFRu9zp_20gD  
+
+* PLAYLIST - Criando gráficos no R com o ggplot2 (Parte 1 ao 2): [Fernanda Peres]https://youtu.be/DYsPRa3vpf0  
+
+* PLAYLIST - R Markdown: Gerando relatórios usando o R (Parte 1 ao 5): [Fernanda Peres]https://youtu.be/obxa5VH4WvY  
+
+* Minicurso R - UFPR: [UFPR]https://youtu.be/obxa5VH4WvY  
+
+* R Markdown: The Definitive Guide: [Yihui Xie, J. J. Allaire, Garrett Grolemund]https://bookdown.org/yihui/rmarkdown/
+
+  
