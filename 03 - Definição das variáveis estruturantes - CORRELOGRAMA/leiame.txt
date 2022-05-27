@@ -1,0 +1,1 @@
+Definição das variáveis estruturantes - CORRELOGRAMA  - Calcula a correlação de variáveis e exibe os resultados graficamente. As funções de painel incluídas podem exibir pontos, sombreamento, elipses e valores de correlação com intervalos de confiança nos ajudam a visualizar os dados em matrizes de correlação.
