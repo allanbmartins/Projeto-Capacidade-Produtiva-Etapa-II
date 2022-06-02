@@ -1,0 +1,64 @@
+Segue Modelo 1 - com orientação a saídas - "x = FT, CUSTEIO e y = UBP total"
+
+Segue Modelo 2 - com orientação a saídas - "x = FT, CUSTEIO e y = Ubp_1000_hab" (Removido estado AP)
+
+Segue Modelo 3 - com orientação a saídas - "x = FT, CUSTEIO, INFRA e y = Ubp_1000_hab" (Removido estado AP)
+
+Segue Modelo 4 - com orientação a saídas - "x = FT, CUSTEIO, INFRA e y = Ubp_1000_hab, REC_gerad" (Removido estado AP)
+
+Segue Modelo 5 - com orientação a saídas - "x = FT, CUSTEIO, INFRA e y = Ubp_1000_hab, REC_gerad, CUSTO_UBP" (Removido estado AP)
+
+
+
+
+Segue Modelo 1 - com orientação a saídas - "x = FT, CUSTEIO, INFRA e y = Ubp_1000_hab, REC_gerad, CUSTO_UBP, IC" (Removido estado AP)
+
+
+
+result_dea_eff <- rename(result_dea_eff, eff = efficiencies.bd_dea_mod1_data_calc.) #Renomeia coluna eff
+
+
+
+result_dea_eff_mod2$eff <- ifelse (result_dea_eff_mod2$eff < 1.0, (result_dea_eff_mod2$eff = 0.0000), (result_dea_eff_mod2$eff - 1.0000))
+
+
+
+mutate(eficiencia = case_when(eff <= 1.0000 ~ "A - até 1x aumento capacidade",
+                                 (eff <= 2.000) & (eff > 1.0000) ~ "B - até 2x de aumento capacidade",
+                                 eff > 2.0000 ~ "C - até 5x de aumento capacidade"))
+
+
+str_c(uf," - ",per100)
+
+
+Boa Tarde, Prezados
+
+Prometo que que será o último envio até a reunião
+
+
+
+ADIÇÃO E ALTERAÇÃO
+
+Foi adicionado nos 02 conjunto de modelos (com orientação por entrada e saída) o gráfico e o mapa de INFRA com base na varivável infra, com escalas ""A - INFRA - acima de 70%"", "B - INFRA - entre 70% a 50%" e ""C - INFRA - menos de 50%".
+No Conjunto 2 de modelos orientados a saídas foram removidos os 1º 100% de execução só restando realmente o quanto se pode produzir a mais e também alterado o texto das legendas para "A - até 1x aumento capacidade", "B - até 2x de aumento capacidade" e "C - até 5x de aumento capacidade".
+
+Relatório HTML com os 05 modelos - com orientação a entradas = “1-Modelo---DEA---deaR---2021---JAN-e-DEZ---Oriented-Inputs---23052022.html”
+
+Relatório HTML com os 05 modelos - com orientação a saídas = “1-Modelo---DEA---deaR---2021---JAN-e-DEZ---Oriented-Outputs---23052022.html”
+
+
+EM DESENVOLVIMENTO
+
+Até a próxima reunião 09/06/2022 será incluída também ao final do 1º conjunto de modelos com orientação a entrada, Gráficos de Dispersão, para comparar os modelos de eficiência que serão:
+
+1° Modelo 3 (com INFRA) x Modelo 2 (sem INFRA)
+;
+2° Modelo 4 x Modelo 3;
+
+3° Modelo 5 × Modelo 4.
+
+Explicação - Nesse gráfico, os pontos que ficarem na diagonal significariam ausência de mudança de um modelo para outro.
+
+
+OBS.: Favor desconsiderar envios anteriores para não gerar equivocos no entendimentos dos dados, devido alterações em escalas.
+

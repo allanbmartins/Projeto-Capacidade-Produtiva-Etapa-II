@@ -1,0 +1,1334 @@
+---
+title: "Projeto de Capacidade Produtiva - Fase II"
+subtitle: FALSE
+author: "Allan B. Martins"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+    html_document:
+      highlight: espresso
+      includes:
+        in_header: cabecalhofinal_branco.html
+      theme: flatly
+      number_sections: TRUE
+      toc: TRUE
+      toc_float:
+        collapsed: TRUE
+        smooth_scroll: TRUE
+---
+
+```{r Pacotes, warning = FALSE, message = FALSE, echo = FALSE, results='hide'}
+library(dplyr)#pacote mais útil para realizar transformação de dados.
+library(tidyverse)#pacote guarda-chuva que consolida uma série de ferramentas que fazem parte o ciclo da ciência de dados.
+library(cluster)# Métodos de análise de cluster.
+library(factoextra)#Fornece algumas funções fáceis de usar para extrair e visualizar a saída de análises de dados multivariadas.
+library(readxl)#O pacote readxl facilita a obtenção de dados do Excel e para o R.
+library(rstatix)#Provides a simple and intuitive pipe-friendly framework, for performing basic   statistical tests.
+# library(emmeans)# Pacote para obter médias marginais estimadas (EMMs) para muitos modelos lineares, lineares generalizados e mistos.
+library(ggplot2)#Um sistema para a criação 'declarativa' de gráficos, baseado na "Gramática dos Gráficos".
+library(knitr)#Fornece uma ferramenta de uso geral para geração de relatórios dinâmicos em R usando técnicas de programação literária.
+library(kableExtra)#Construa tabelas complexas em HTML ou 'LaTeX' usando 'kable ()' de 'knitr' e a sintaxe de tubulação de 'magrittr'.
+library(htmltools)#Ferramentas para geração e saída de HTML.
+# library(zoo)#Uma classe S3 com métodos para observações indexadas totalmente ordenadas.
+library(lmtest)#Uma coleção de testes, conjuntos de dados e exemplos para verificação diagnóstica em modelos de regressão linear.
+library(rmarkdown)#Converta documentos R Markdown em uma variedade de formatos.
+library(cowplot)#Fornece vários recursos que ajudam a criar figuras de qualidade de publicação com 'ggplot2'.
+library(SciViews) #Funções para instalar adições de SciViews ao R e mais ferramentas.
+library(forecast) #Métodos e ferramentas para exibir e analisar previsões de séries temporais univariadas,
+#library(car) #Conflito
+library(data.table) #data.table fornece uma versão de alto desempenho dos R's base com sintaxe e aprimoramentos de recursos para facilitar o uso, conveniência e velocidade de programação.data.frame
+library(corrplot) #O corrplot do pacote R fornece uma ferramenta exploratória visual na matriz de correlação que suporta reordenamento variável automático para ajudar a detectar padrões ocultos entre variáveis.
+library(reshape2) #reshape2 is superseded: only changes necessary to keep it on CRAN will be made. We recommend using tidyr instead.
+library(openxlsx) # Este pacote R simplifica a criação de arquivos fornecendo uma interface de alto nível para escrever, estilizar e editar planilhas. Através do uso do Rcpp, os tempos de leitura/gravação são comparáveis aos pacotes xlsx
+library(scales) #O uso mais comum do pacote de escalas é personalizar para controlar a aparência de rótulos de eixo e legenda.
+library(tibble) #Um tibble, ou , é uma reimaginação moderna do data.frame, mantendo que o tempo provou ser eficaz, e jogando fora o que não é.
+
+# ctrl + shift + c
+
+library(outliers) # Pacote para tratamento de outliers
+library(deaR) #Conjunto de funções para Análise de Envoltório de Dados. Ele executa modelos DEA clássicos e difusos.
+library (robustX) # Se esse pacote não estiver instalado, instalar utilizando o comando install.packages("robustX")
+#library(Benchmarking) #Métodos para análise de fronteiras, Análise de Envoltório de Dados (DEA), sob diferentes premissas tecnológicas (fdh, vrs, drs, crs, irs, add/frh e fdh+), e utilizando diferentes medidas de eficiência (baseada em entrada, baseada em saída, gráfico hiperbólico, aditivo, super e eficiência direcional).
+
+library(formattable) #O pacote “formatável” fornece métodos para criar vetores formatáveis e objetos de quadro de dados.
+#library(plyr) #O pacote plyr é um conjunto de ferramentas limpas e consistentes que implementam o padrão split-apply-combine em R. Este é um padrão extremamente comum na análise de dados: você resolve um problema complexo dividindo-o em pequenos pedaços, fazendo algo com cada peça e, em seguida, combinando os resultados novamente.
+
+#library(sqldf) #A função sqldf() é normalmente aprovada um único argumento que é uma instrução de seleção SQL onde os nomes de tabela são nomes comuns de quadros de dados R. sqldf() configura de forma transparente um banco de dados, importa os quadros de dados para esse banco de dados, executa a seleção SQL ou outra declaração e retorna o resultado usando uma heurística para determinar qual classe atribuir a cada coluna do quadro de dados retornado. As funções sqldf() ou leitura.csv.sql() também podem ser usadas para ler arquivos filtrados em R, mesmo que os arquivos originais sejam maiores do que o próprio R pode lidar. Backends 'RSQLite', 'RH2', 'RMySQL' e 'RPostgreSQL' são suportados.
+#library(scales) #pacote de escalas
+# Instalando o 'geobr'
+#remotes::install_github("ipeaGIT/geobr", subdir = "r-package")
+library(geobr) # Necessárias para os dados dos mapas
+library(ggspatial) #Os dados espaciais mais o poder da estrutura ggplot2 significam um mapeamento mais fácil quando os dados de entrada já estão na forma de objetos espaciais. Fonte de pesquisa:(https://cran.r-project.org/web/packages/ggspatial/index.html)
+#library(ggimage) #Suporta arquivos de imagem e objetos gráficos a serem visualizados no sistema gráfico 'ggplot2'.
+#library(concatenate) #Concatenar strings (conflito ggplot2)
+library(stringr)#pacote stringr, que possui uma sintaxe mais consistente, permitindo ao usuário manipular textos com muito mais facilidade.
+library(clipr) #Copiando tabelas do R para o Excel através da área de transferência
+
+```
+
+```{r configuracoes, warning = FALSE, message = FALSE, echo = FALSE, results='hide'}
+#remove(list=ls())
+
+#Define qtd de casas decimais
+options(scipen=999)
+options(digits = 4)
+
+#Defini padrões para textos dos títulos
+ano <- ("2021")
+periodo <- ("JAN A DEZ")
+tipo_modelo <- ("Oriented Outputs")
+titulo_original <- ("Tabela de dados completa original")
+descricao <- ("DEA - Variável 'INFRA'")
+titulo_infra <- c("Tabela com resultados dos pesos das variáveis estruturantes para criação da variável 'INFRA'","Tabela com dados tratado com pesos nas variáveis estruturantes para criação da variável 'INFRA'","Tabela com a variável estruturantes 'INFRA'")
+versao <- ("v6")
+nome_modelos <- c("Modelo 1","Modelo 2","Modelo 3","Modelo 4","Modelo 5","Modelo 6")
+titulo_tab_mod <-c("Tabela de dados do Modelo 1","Tabela de dados do Modelo 2","Tabela de dados do Modelo 3","Tabela de dados do Modelo 4","Tabela de dados do Modelo 5","Tabela de dados do Modelo 6")
+
+titulo_graf_infra <- ("Percentual de infraestrutura das UF - com base na variável 'INFRA'")
+titulo_intervalo_escala <- ("Escala")
+titulo_mapa_infra <- ("Mapa Brasil do Percentual de infraestrutura das UF - com base na variável 'INFRA'")
+
+descri_modelos <- c("x = FT, CUSTEIO e y = UBP total","x = FT, CUSTEIO e y = Ubp_1000_hab", "x = FT, CUSTEIO, INFRA e y = Ubp_1000_hab","x = FT, CUSTEIO, INFRA e y = Ubp_1000_hab, REC_gerad ","x = FT, CUSTEIO, INFRA e y = Ubp_1000_hab, REC_gerad, CUSTO_UBP","x = FT, CUSTEIO, INFRA e y = Ubp_1000_hab, REC_gerad, CUSTO_UBP, IC")
+titulo_intervalo_eff <- c("Intervalo de Eficiência")
+titulo_graf_eff <- c("Percentual de aumento na capacidade de produção - Modelo 1","Percentual de aumento na capacidade de produção - Modelo 2","Percentual de aumento na capacidade de produção - Modelo 3","Percentual de aumento na capacidade de produção - Modelo 4","Percentual de aumento na capacidade de produção - Modelo 5","Percentual de aumento na capacidade de produção - Modelo 6")
+
+titulo_mapa_modelo <- c("Mapa Brasil do Percentual de aumento na capacidade de produção - Modelo 1","Mapa Brasil do Percentual de aumento na capacidade de produção - Modelo 2","Mapa Brasil do Percentual de aumento na capacidade de produção - Modelo 3","Mapa Brasil do Percentual de aumento na capacidade de produção - Modelo 4","Mapa Brasil do Percentual de aumento na capacidade de produção - Modelo 5","Mapa Brasil do Percentual de aumento na capacidade de produção - Modelo 6")
+```
+
+```{r var Leitura banco de dedos completo, warning = FALSE, message = FALSE, echo = FALSE, results='hide'}
+#Importando
+setwd("D:/01_Digea/02_Proj/02_Proj_CP/03 Fase II/01 DEA/01 Modelo 02/05 DEA")
+
+bd_m_dea_12_2021 <- read_excel("bd_zy_zf_zs_2021_trab_v5_sem_ap.xlsx", sheet=1, col_names=TRUE)
+#bd_m_dea_12_2021 <- read_excel(file.choose(), sheet=1, col_names=TRUE)
+bd_dea <- bd_m_dea_12_2021
+
+var_estruturantes <- colnames(bd_dea)
+
+bd_var_pesos_infra <- read_excel("bd_var_pesos_infra.xlsx", sheet=1, col_names=TRUE)
+#bd_var_pesos_infra <- read_excel(file.choose(), sheet=1, col_names=TRUE)
+bd_var_pesos_infra$percentDim13 <- percent(bd_var_pesos_infra$percentDim13,2)
+
+#Mapa
+#Parte V - Criar um data.frame com os dados do mapa BRASIL 2020 usando geobr - Fonte de pesquisa (https://jodavid.github.io/post/gerando-um-mapa-com-geobr-no-r/)
+br_2020 <- read_state(code_state="all", year=2020)
+str(br_2020)
+
+br_2020 <- br_2020[(-27),] #Retirar dos dados do Distrito Federal- DF, devido não termos os dados do mesmo separado do Goiá para usar. 
+str(br_2020)
+
+#Renomear nome da culuna de UF
+br_2020 <- rename(br_2020, uf = abbrev_state)
+
+#write.table(BR_2020, file = "br_mapas_2020.csv", sep=";", col.names = NA, row.names = TRUE) #Exportar dados geográficos para leitura em Excel
+
+```
+
+# Orientação do Modelo
+
+Modelo O-O ou O- R
+
+O modelo orientado a saída (output)  maximiza as saídas, enquanto a entrada é mantida em nível constante. 
+
+No contexto da Rede, os resultados O-O apontaråo quanto o OD poderia produzir, considerando os mesmos recursos atuais (FT, Custeio e Infra).
+
+Tanto o modelo orientado a entradas(input) quanto a saídas(output) buscam maximizar as saídas, minimizar as entradas e, assim, maximizar a eficiência.
+
+
+# Técnica utilizada para criação dos Modelos de Análise Envoltória de Dados (DEA) **`r ano`** - **`r periodo`** - **`r descricao`** - Tipo modelo **`r tipo_modelo`** - (**`r versao`**)
+
+Contextualização
+
+A Metodologia DEA (Data Envelopment Analysis)
+
+O primeiro modelo DEA foi proposto por Charnes, Coooper e Rhodes (1978) que, a seu tributo, se designou DEA -- CCR, tinha orientação ao input e pressupunha a existência de retornos constantes de escala (CRS). Esta metodologia procura estabelecer quais as empresas, de uma dada amostra, determinam a superfície envolvente ou fronteira de produção eficiente.
+
+A metodologia DEA é aplicada na avaliação unitária de unidades homogéneas ou empresas, tais como hotéis. A unidade em avaliação é normalmente denominada como uma unidade de tomada de decisão (DMU, Data Managment Unit) que converte inputs em outputs, facto pelo qual em qualquer estudo a sua identificação é um aspeto difícil e crucial. Segundo DEA, o desempenho de uma empresa é avaliado em relação a uma fronteira eficiente, que é construída através da combinação linear das empresas existentes. O procedimento baseia-se numa formulação matemática sofisticada.
+
+Usaremos a função "deaR" desse pacote e seus padrões (default), com seu conjunto de funções para Análise de Envoltório de Dados. Ele executa modelos DEA clássicos e difusos
+
+# Etapa I - Estruturação do banco de dados e criação da variável "INFRA" baseada na aplicação dos pesos adiquiridos do PCA {.tabset .tabset-fade .tabset-pills}
+
+## Tabela de dados completa Original {.tabset .tabset-fade .tabset-pills}
+```{r Tabela de dados completa Original 1a, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+## Tabela de dados completa Original
+#Visualiza o banco em forma de tabela dinâmica
+bd_tabela_dados <- function(bd_temp,bd_temp2){
+kable(bd_temp,"html",caption = bd_temp2) %>%
+   kable_styling(bootstrap_options = c("striped"),
+                full_width = T,
+                font_size = 15) %>%
+   scroll_box(height = "600px")
+}
+bd_tabela_dados(bd_dea,titulo_original)
+
+```
+
+## Tabela com resultados dos pesos das variáveis estruturantes para criação da variável "INFRA" {.tabset .tabset-fade .tabset-pills}
+```{r Tabela com resultados dos pesos das variáveis estruturantes para criação da variável "INFRA" 1b, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+## Tabela com resultados dos pesos das variáveis estruturantes para criação da variável "INFRA"
+#Visualiza o banco em forma de tabela dinâmica
+bd_tabela_dados <- function(bd_temp,bd_temp2){
+kable(bd_temp,"html",caption = bd_temp2) %>%
+   kable_styling(bootstrap_options = c("striped"),
+                full_width = T,
+                font_size = 15) %>%
+   scroll_box(height = "600px")
+}
+bd_tabela_dados(bd_var_pesos_infra,titulo_infra[1])
+
+```
+
+```{r Tabela com dados tratado com pesos nas variáveis estruturantes para criação da variável "INFRA" 1c, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+## Tabela com dados tratado com pesos nas variáveis estruturantes para criação da variável "INFRA"
+bd_tabela_dados_pesos_tra <- function(bd_temp){
+
+#Sequencia de ordaneção colunas das variáveis estruturantes
+nome_var_estrut <- c("zs_estaber_capta","zs_transp","zs_telecom","zs_econ","zs_seg_nub_n","zs_energ","zs_geo_n","zs_snb")
+
+#Sequencia de ordaneção colunas das variáveis estruturantes
+seq <- c(1,2,3,4,5,6,14,8,9,11,12,7,13,10)
+
+#Reordenar as colunas das variáveis estruturantes
+# a <- bd_temp %>% select(bd_temp[1],bd_temp[2],bd_temp[3],bd_temp[4],bd_temp[5],bd_temp[6],bd_temp[14],bd_temp[8],bd_temp[9],bd_temp[11],bd_temp[7],bd_temp[13],bd_temp[10])
+a <- bd_temp[,seq]
+
+#Sequencia de pesos das variáveis estruturantes
+pesos <- c(0.18270,0.16850,0.15780,0.12600,0.12000,0.10710,0.07890,0.05900)
+
+# #Aplicar os pesos as colunas das variáveis estruturantes
+a <- a %>% mutate(zs_estaber_capta = zs_estaber_capta*pesos[1])
+a <- a %>% mutate(zs_transp = zs_transp*pesos[2])
+a <- a %>% mutate(zs_telecom = zs_telecom*pesos[3])
+a <- a %>% mutate(zs_econ = zs_econ*pesos[4])
+a <- a %>% mutate(zs_seg_nub_n = zs_seg_nub_n*pesos[5])
+a <- a %>% mutate(zs_energ = zs_energ*pesos[6])
+a <- a %>% mutate(zs_geo_n = zs_geo_n*pesos[7])
+a <- a %>% mutate(zs_snb = zs_snb*pesos[8])
+return (a)
+}
+bd_dea_pesos <- bd_tabela_dados_pesos_tra(bd_dea)
+
+```
+
+## Tabela com dados tratado com pesos nas variáveis estruturantes para criação da variável "INFRA" {.tabset .tabset-fade .tabset-pills}
+```{r Tabela com dados tratado com pesos nas variáveis estruturantes para criação da variável "INFRA" 1d, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+## Tabela com dados tratado com pesos nas variáveis estruturantes para criação da variável "INFRA"
+#Visualiza o banco em forma de tabela dinâmica
+bd_tabela_dados <- function(bd_temp,bd_temp2){
+kable(bd_temp,"html",caption = bd_temp2) %>%
+   kable_styling(bootstrap_options = c("striped"),
+                full_width = T,
+                font_size = 15) %>%
+   scroll_box(height = "600px")
+}
+bd_tabela_dados(bd_dea_pesos,titulo_infra[2])
+```
+
+## Sumário da Tabela com dados tratado com pesos nas variáveis estruturantes para criação da variável "INFRA" {.tabset .tabset-fade .tabset-pills}
+```{r Sumário da Tabela com dados tratado com pesos nas variáveis estruturantes para criação da variável "INFRA" 1e, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+summary(bd_dea_pesos)
+```
+
+```{r Tabela com a variável estruturantes "INFRA" 1f, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+####  Tabela com a variável estruturantes "INFRA"
+bd_tabela_dea_final <- function(bd_temp){
+#soma das  variáveis estruturantes
+a <- bd_temp[,c(1:6)]
+a$zs_infra <- (bd_temp$zs_estaber_capta+bd_temp$zs_transp+bd_temp$zs_telecom+bd_temp$zs_econ+bd_temp$zs_seg_nub_n+bd_temp$zs_energ+bd_temp$zs_geo_n+bd_temp$zs_snb)
+#a$zs_infra <- (a[,7]+a[,8]+a[,9]+a[,10]+a[,11]+a[,12]+a[,13]+a[,14])
+return (a)
+}
+bd_dea_final <- bd_tabela_dea_final(bd_dea_pesos)
+
+```
+
+## Tabela com a variável estruturantes "INFRA"
+```{r Tabela com a variável estruturantes "INFRA" 1g, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+## Tabela com a variável estruturantes "INFRA"
+#Visualiza o banco em forma de tabela dinâmica
+bd_tabela_dados <- function(bd_temp,bd_temp2){
+kable(bd_temp,"html",caption = bd_temp2) %>%
+   kable_styling(bootstrap_options = c("striped"),
+                full_width = T,
+                font_size = 15) %>%
+   scroll_box(height = "600px")
+}
+bd_tabela_dados(bd_dea_final,titulo_infra[3])
+```
+
+## Sumário da Tabela com a variável estruturantes "INFRA"
+```{r Sumário da ## Tabela com a variável estruturantes "INFRA" 1h, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+summary(bd_dea_final)
+```
+
+
+```{r mod1 banco var infra resultado eficiencia 1h2, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 10,echo=FALSE, results='hide'}
+#Mapa
+#Cria dataframe com a variável INFRA
+bd_infra <- read_excel("bd_infra.xlsx", sheet=1, col_names=TRUE)
+
+bd_infra$zs_infra_escala <- percent(bd_infra$zs_infra_escala,1)
+
+col_infra <- function(x_temp){
+x_temp <- 
+  x_temp %>% 
+  mutate(escala_infra = case_when(zs_infra_escala < 0.499999 ~ "C - INFRA - menos de 50%",
+                                 (zs_infra_escala > 0.500000) & (zs_infra_escala < 0.700001) ~ "B - INFRA - entre 70% a 50%",
+                                 zs_infra_escala > 0.700000 ~ "A - INFRA - acima de 70%"))
+return(x_temp)
+}
+bd_infra <- col_infra(bd_infra)
+
+#Criar ordenação por fator
+bd_infra$uf <- factor(as.character(bd_infra$uf), levels = bd_infra$uf[order(bd_infra$zs_infra_escala)])
+```
+
+
+## Gráfico de barra INFRA {.tabset .tabset-fade .tabset-pills}
+```{r graficos infra  resultado eficiencia 2f, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Grafico de barras na horizontal - Percentual de aproximação com a fronteira de eficiência 100% nos estados da RBMLQ-I
+graf_bar_horiz_eff <- function(bd_temp,bd_temp2,bd_temp3){
+a <- ggplot(data = bd_temp, aes(x= zs_infra_escala,y = uf))+
+      geom_col(aes(fill = escala_infra))+
+      scale_fill_manual(values=c("#32CD32","#1E90FF","#FF8C00"))+
+      geom_text(aes(label = zs_infra_escala), hjust = 1)+ # Acrescenta números ao gráfico
+      #theme_classic(base_size = 10)+
+      theme_bw(base_size = 10)+
+      labs(title = bd_temp3,
+      fill=bd_temp2)+
+      xlab("Escala")+
+      ylab("UF")
+
+plot_grid(a, ncol = 1, nrow = 1,rel_widths = c(1, 1))
+return (a)
+}
+graf_bar_horiz_eff(bd_infra,titulo_intervalo_escala[1],titulo_graf_infra[1])
+
+```
+
+```{r mapa brasil infra  resultado eficiencia 1h3, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 10,echo=FALSE, results='hide'}
+#Parte VI - Unir as bases de dados de georreferenciamento do IBGE com o dataframe com a variável INFRA.
+map_infra_2021 <- full_join(br_2020,bd_infra, by="uf")
+#str(map_infra_2021)
+
+#write.table(MAPA_2012, file = "br_mapas_2020", sep=";", col.names = TRUE, row.names = TRUE) #Exportar dados geográficos para leitura em Excel
+```
+
+## Mapa Brasil INFRA
+```{r mapa brasil infra resultado eficiencia 1i2, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 10,echo=FALSE, results='hide'}
+#Parte VII - Inicar o trabalho de confeccionar o mapa
+mapa_br_eff <- function(bd_temp,bd_temp2,bd_temp3,bd_temp4){
+b <- ggplot(bd_temp)+
+  geom_sf(aes(fill= escala_infra), colour = "black", size = 0.1)+
+  scale_fill_manual(values=c("#32CD32","#1E90FF","#FF8C00"))+
+  xlab("") +  ylab("")+
+  geom_sf_label(aes(label = str_c(uf," - ",zs_infra_escala)),label.padding = unit(0.5, "mm"),size = 3)+ 
+  annotation_scale(location = "br",
+                   height = unit(0.5, "cm"),
+                   width = unit(0.5, "cm"))+  #Inserir escala (t em cima e b em baixo) e (r direita e l esquerdo)
+  annotation_north_arrow(location = "tr", 
+                         style = north_arrow_nautical,
+                         height = unit(4.5, "cm"),
+                         width = unit(4.5, "cm"))+ #Inserir rosa dos ventos (t em cima e b em baixo) e (r direita e l esquerdo)
+  # geom_image(aes(x=-37, y=-27), #Inserir imagem.
+  #            image="D:/01_Digea/02_Proj/02_Proj_CP/01 Fase I/09_4_Etapa/01_VERIF_INSTR_PER_2012_2021/Mapas/Marca Inmetro/vertical-preta-traco.png",
+  #            size=0.15)+
+  labs(title = (bd_temp2), #Inserir título e subtítulo.
+       subtitle = bd_temp3,
+       fill=bd_temp4, #Especificar a nome da legenda
+       x=NULL,
+       y=NULL)+
+  theme_bw(base_size = 10) +
+  theme(legend.position = c(0.18,0.2), #Especificar a posição da legenda.
+        legend.key.size = unit(10,"mm")) #Especificar tamanho da legenda.
+
+plot_grid(b, ncol = 1, nrow = 1,rel_widths = c(1, 1))
+return (b)
+}
+mapa_br_eff(map_infra_2021,titulo_graf_infra[1][1],ano[1],titulo_intervalo_escala[1])
+
+```
+
+
+
+# Etapa II - Geração Modelos de Análise Envoltória de Dados (DEA) - 2021 JAN e DEZ {.tabset .tabset-fade .tabset-pills}
+
+![MODELOS DE EFICIÊNCIA (DEA)](D:/01_Digea/02_Proj/02_Proj_CP/03%20Fase%20II/01%20DEA/01%20Modelo%2002/05%20DEA/1%20-%20Modelos%20de%20Efici%C3%AAncia%20(DEA).png)
+
+
+
+## **`r nome_modelos[1]`** {.tabset .tabset-fade .tabset-pills}
+```{r mod1 Banco  2a, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Importando dados modelo 1
+setwd("D:/01_Digea/02_Proj/02_Proj_CP/03 Fase II/01 DEA/01 Modelo 02/05 DEA/")
+
+bd_m_dea_12_2021 <- read_excel("bd_m_dea_12_2021.xlsx", sheet=1, col_names=TRUE)
+bd_dea_mod1 <- bd_m_dea_12_2021
+```
+
+### Tabela de dados **`r nome_modelos[1]`** - **`r descri_modelos[1]`** {.tabset .tabset-fade .tabset-pills}
+```{r mod1 Tabela de dados completa Original 2b, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+## Tabela de dados completa Original
+#Visualiza o banco em forma de tabela dinâmica
+bd_tabela_dados <- function(bd_temp,bd_temp2,bd_temp3){
+bd_temp4 <- c(bd_temp2,bd_temp3)  
+kable(bd_temp,"html",caption = bd_temp4) %>%
+   kable_styling(bootstrap_options = c("striped"),
+                full_width = T,
+                font_size = 15) %>%
+   scroll_box(height = "600px")
+}
+bd_tabela_dados(bd_dea_mod1,titulo_tab_mod[1],descri_modelos[1])
+
+```
+
+### Sumário da Tabela de dados do **`r nome_modelos[1]`** - **`r descri_modelos[1]`** {.tabset .tabset-fade .tabset-pills}
+```{r mod1 Sumário da Tabela com dados tratado com pesos nas variáveis estruturantes para criação da variável "INFRA" 2c, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+summary(bd_dea_mod1)
+```
+
+```{r mod1 var geo padronização dos dados mod1  1, warning = FALSE, message = FALSE, echo = FALSE}
+#Padronização em escala
+# bd_dea_escala <- function(bd_temp){
+# a <- data.frame(scale(bd_temp[,2:4])) ##Normalização de um conjunto de dados usando o valor médio e o desvio padrão é conhecida como dimensionamento.
+# a$uf <- bd_temp$uf #Adiciona os nomes das UF
+# a <- a[,c(4,1:3)] #Re-ordenar colunas
+# return (a)
+# }
+# bd_dea_mod1_escale <- bd_dea_escala(bd_dea_mod1)
+```
+
+```{r mod1 Sumário da Tabela com dados tratado com pesos nas variáveis estruturantes para criação da variável "INFRA" 2d, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+# summary(bd_dea_mod1_escale)
+```
+
+```{r mod1 Data Envelopment Analysis: R deaR 2e, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#### Cálculo de eficiência do Modelo 1 - x = FT, CUSTEIO e y = UBP total - 2021 JAN e DEZ
+#Create a "read_data" object
+bd_data_dea <- function(bd_temp){
+a <- read_data(bd_temp, dmus = 1,
+                          ni = 2,
+                          no = 1)
+return (a)
+}
+bd_dea_mod1_data <- bd_data_dea(bd_dea_mod1)
+
+
+#Solve the 2 stage DEA model "oi" ou "oo"  / "vrs" ou "crs"
+bd_data_dea_calc <- function(bd_temp){
+a <- model_basic(bd_temp,
+                 orientation = c("oo"),
+                 rts = c("crs"))
+return (a)
+}
+bd_dea_mod1_data_calc <- bd_data_dea_calc(bd_dea_mod1_data)  
+
+#recuperar valores do DEA
+result_dea_eff <- data.frame(efficiencies(bd_dea_mod1_data_calc)) #show results
+# result_dea_rts <- data.frame(rts(bd_dea_mod1_data_calc))
+# result_dea_slacks <- data.frame(slacks (bd_dea_mod1_data_calc))
+# result_dea_references <- data.frame(references(bd_dea_mod1_data_calc)) #show local rts
+# result_dea_targets <- data.frame(targets(bd_dea_mod1_data_calc))
+# result_dea_lambdas <- data.frame(lambdas(bd_dea_mod1_data_calc))
+
+#Transformar valor de eficiencia em %, ordenar decrescente e e cria fator para as UF
+result_dea_eff <- rename(result_dea_eff, eff = efficiencies.bd_dea_mod1_data_calc.) #Renomeia coluna eff
+
+result_dea_eff$eff <- ifelse (result_dea_eff$eff < 1.0,  (result_dea_eff$eff = 0.0000),(result_dea_eff$eff - 1.000))
+
+result_dea_eff$per100 <- percent(result_dea_eff$eff,1) #Formato percentual com o método percent() neste pacote é usado para representar os vetores numéricos no formato de porcentagem.
+
+result_dea_eff$uf <- rownames(result_dea_eff,do.NULL = TRUE, prefix = "row") #Recupera nome das UF do rownames
+#
+
+#Função para criação de coluna de condicional de eficiencia com faixa de tolerancia "Abaixo de 50%", "Média entre 70% e 50%" e "Ideal acima de 70%"
+col_eficiencia <- function(x_temp){
+x_temp <- 
+  x_temp %>% 
+  mutate(eficiencia = case_when(eff <= 1.0000 ~ "A - até 1x aumento capacidade",
+                                 (eff <= 2.000) & (eff > 1.0000) ~ "B - até 2x de aumento capacidade",
+                                 eff > 2.0000 ~ "C - até 5x de aumento capacidade"))
+return(x_temp)
+}
+result_dea_eff <- col_eficiencia(result_dea_eff)
+
+#Criar ordenação por fator
+result_dea_eff$uf <- factor(as.character(result_dea_eff$uf), levels = result_dea_eff$uf[order(result_dea_eff$per100)])
+
+
+#Estimating Efficiency scores
+# efficiencies(bd_dea_mod1_data_calc)
+# 
+# eff <- efficiencies(bd_dea_mod1_data_calc)
+# 1/eff
+
+#summary(modelo_basico_1)
+
+```
+
+### Gráfico de barra {.tabset .tabset-fade .tabset-pills}
+```{r mod1 graficos resultado eficiencia 2f, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Grafico de barras na horizontal - Percentual de aproximação com a fronteira de eficiência 100% nos estados da RBMLQ-I
+graf_bar_horiz_eff <- function(bd_temp,bd_temp2,bd_temp3,bd_temp4){
+a <- ggplot(data = bd_temp, aes(x= per100,y = uf))+
+      geom_col(aes(fill = eficiencia))+
+      scale_fill_manual(values=c("#32CD32","#1E90FF","#FF8C00"))+
+      geom_text(aes(label = per100), hjust = 1)+ # Acrescenta números ao gráfico
+      #theme_classic(base_size = 10)+
+      theme_bw(base_size = 10)+
+      labs(title = bd_temp3,
+      fill=bd_temp2)+
+      xlab(bd_temp4)+
+      ylab("UF")
+
+plot_grid(a, ncol = 1, nrow = 1,rel_widths = c(1, 1))
+return (a)
+}
+graf_bar_horiz_eff(result_dea_eff,titulo_intervalo_eff[1],titulo_graf_eff[1],descri_modelos[1])
+
+```
+
+
+### Mapa Brasil {.tabset .tabset-fade .tabset-pills}
+```{r mod1 banco mapa brasil resultado eficiencia 2h, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 10,echo=FALSE, results='hide'}
+#Mapa
+
+#Parte VI - Unir as bases de dados de georreferenciamento do IBGE com os dados dos clusters dos estados.
+map_dea_2021 <- full_join(br_2020,result_dea_eff, by="uf")
+#str(map_dea_2021)
+
+#write.table(MAPA_2012, file = "br_mapas_2020", sep=";", col.names = TRUE, row.names = TRUE) #Exportar dados geográficos para leitura em Excel
+```
+
+```{r mod1 mapa brasil resultado eficiencia 2i, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 10,echo=FALSE, results='hide'}
+#Parte VII - Inicar o trabalho de confeccionar o mapa
+mapa_br_eff <- function(bd_temp,bd_temp2,bd_temp3,bd_temp4,bd_temp5){
+b <- ggplot(bd_temp)+
+  geom_sf(aes(fill= eficiencia), colour = "black", size = 0.1)+
+  scale_fill_manual(values=c("#32CD32","#1E90FF","#FF8C00"))+
+  xlab("") +  ylab("")+
+  geom_sf_label(aes(label = str_c(uf," - ",per100)),label.padding = unit(0.5, "mm"),size = 3)+ 
+  annotation_scale(location = "br",
+                   height = unit(0.5, "cm"),
+                   width = unit(0.5, "cm"))+  #Inserir escala (t em cima e b em baixo) e (r direita e l esquerdo)
+  annotation_north_arrow(location = "tr", 
+                         style = north_arrow_nautical,
+                         height = unit(4.5, "cm"),
+                         width = unit(4.5, "cm"))+ #Inserir rosa dos ventos (t em cima e b em baixo) e (r direita e l esquerdo)
+  # geom_image(aes(x=-37, y=-27), #Inserir imagem.
+  #            image="D:/01_Digea/02_Proj/02_Proj_CP/01 Fase I/09_4_Etapa/01_VERIF_INSTR_PER_2012_2021/Mapas/Marca Inmetro/vertical-preta-traco.png",
+  #            size=0.15)+
+  labs(title = str_c(bd_temp2,bd_temp5, sep = " - "), #Inserir título e subtítulo.
+       subtitle = bd_temp3,
+       fill=bd_temp4, #Especificar a nome da legenda
+       x=NULL,
+       y=NULL)+
+  theme_bw(base_size = 10) +
+  theme(legend.position = c(0.18,0.2), #Especificar a posição da legenda.
+        legend.key.size = unit(10,"mm")) #Especificar tamanho da legenda.
+
+plot_grid(b, ncol = 1, nrow = 1,rel_widths = c(1, 1))
+return (b)
+}
+mapa_br_eff(map_dea_2021,titulo_mapa_modelo[1],ano[1],titulo_intervalo_eff[1],descri_modelos[1])
+
+```
+
+
+
+
+
+## **`r nome_modelos[2]`** {.tabset .tabset-fade .tabset-pills}
+```{r mod2 Banco   2a, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Importando dados modelo 1
+#setwd("D:/01_Digea/02_Proj/02_Proj_CP/03 Fase II/01 DEA/01 Modelo 02/05 DEA/")
+
+#bd_m_dea_12_2021 <- read_excel("bd_m_dea_12_2021.xlsx", sheet=1, col_names=TRUE)
+bd_dea_mod2 <- select(bd_dea_final,uf,zf_ftp,zf_custeio_t,zy_ubp_1000_hab)
+```
+
+### Tabela de dados **`r nome_modelos[2]`** - **`r descri_modelos[2]`** {.tabset .tabset-fade .tabset-pills}
+```{r mod2 Tabela de dados completa Original 2b, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+## Tabela de dados completa Original
+bd_tabela_dados <- function(bd_temp,bd_temp2,bd_temp3){
+bd_temp4 <- c(bd_temp2,bd_temp3)  
+kable(bd_temp,"html",caption = bd_temp4) %>%
+   kable_styling(bootstrap_options = c("striped"),
+                full_width = T,
+                font_size = 15) %>%
+   scroll_box(height = "600px")
+}
+bd_tabela_dados(bd_dea_mod2,titulo_tab_mod[2],descri_modelos[2])
+
+```
+
+### Sumário da Tabela de dados do **`r nome_modelos[2]`** - **`r descri_modelos[2]`** {.tabset .tabset-fade .tabset-pills}
+```{r mod2 Sumário da Tabela com dados tratado com pesos nas variáveis estruturantes para criação da variável "INFRA" 2c, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+summary(bd_dea_mod2)
+```
+
+```{r mod2 var geo padronização dos dados mod2 1, warning = FALSE, message = FALSE, echo = FALSE}
+#Padronização em escala
+# bd_dea_escala <- function(bd_temp){
+# a <- data.frame(scale(bd_temp[,2:4])) ##Normalização de um conjunto de dados usando o valor médio e o desvio padrão é conhecida como dimensionamento.
+# a$uf <- bd_temp$uf #Adiciona os nomes das UF
+# a <- a[,c(4,1:3)] #Re-ordenar colunas
+# return (a)
+# }
+# bd_dea_mod1_escale <- bd_dea_escala(bd_dea_mod1)
+```
+
+```{r mod2 Sumário da Tabela com dados tratado com pesos nas variáveis estruturantes para criação da variável "INFRA" 2d, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+# summary(bd_dea_mod1_escale)
+```
+
+```{r mod2 Data Envelopment Analysis: R deaR 2e, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#### Cálculo de eficiência do Modelo 1 - x = FT, CUSTEIO e y = UBP total - 2021 JAN e DEZ
+#Create a "read_data" object
+bd_data_dea <- function(bd_temp){
+a <- read_data(bd_temp, dmus = 1,
+                          ni = 2,
+                          no = 1)
+return (a)
+}
+bd_dea_mod2_data <- bd_data_dea(bd_dea_mod2)
+
+
+#Solve the 2 stage DEA model "oi" ou "oo"  / "vrs" ou "crs"
+bd_data_dea_calc <- function(bd_temp){
+a <- model_basic(bd_temp,
+                 orientation = c("oo"),
+                 rts = c("crs"))
+return (a)
+}
+bd_dea_mod2_data_calc <- bd_data_dea_calc(bd_dea_mod2_data)  
+
+#recuperar valores do DEA
+result_dea_eff_mod2 <- data.frame(efficiencies(bd_dea_mod2_data_calc)) #show results
+# result_dea_rts <- data.frame(rts(bd_dea_mod1_data_calc))
+# result_dea_slacks <- data.frame(slacks (bd_dea_mod1_data_calc))
+# result_dea_references <- data.frame(references(bd_dea_mod1_data_calc)) #show local rts
+# result_dea_targets <- data.frame(targets(bd_dea_mod1_data_calc))
+# result_dea_lambdas <- data.frame(lambdas(bd_dea_mod1_data_calc))
+
+#Transformar valor de eficiencia em %, ordenar decrescente e e cria fator para as UF
+result_dea_eff_mod2 <- rename(result_dea_eff_mod2, eff = efficiencies.bd_dea_mod2_data_calc.) #Renomeia coluna eff
+
+result_dea_eff_mod2$eff <- ifelse (result_dea_eff_mod2$eff < 1.0, (result_dea_eff_mod2$eff = 0.0000), (result_dea_eff_mod2$eff - 1.0000))
+
+result_dea_eff_mod2$per100 <- percent(result_dea_eff_mod2$eff,1) #Formato percentual com o método percent() neste pacote é usado para representar os vetores numéricos no formato de porcentagem.
+
+result_dea_eff_mod2$uf <- rownames(result_dea_eff_mod2,do.NULL = TRUE, prefix = "row") #Recupera nome das UF do rownames
+#
+
+#Função para criação de coluna de condicional de eficiencia com faixa de tolerancia "Abaixo de 50%", "Média entre 70% e 50%" e "Ideal acima de 70%"
+col_eficiencia <- function(x_temp){
+x_temp <- 
+  x_temp %>% 
+  mutate(eficiencia = case_when(eff <= 1.0000 ~ "A - até 1x aumento capacidade",
+                                 (eff <= 2.000) & (eff > 1.0000) ~ "B - até 2x de aumento capacidade",
+                                 eff > 2.0000 ~ "C - até 5x de aumento capacidade"))
+return(x_temp)
+}
+result_dea_eff_mod2 <- col_eficiencia(result_dea_eff_mod2)
+
+#Criar ordenação por fator
+result_dea_eff_mod2$uf <- factor(as.character(result_dea_eff_mod2$uf), levels = result_dea_eff_mod2$uf[order(result_dea_eff_mod2$per100)])
+
+#Estimating Efficiency scores
+# efficiencies(bd_dea_mod1_data_calc)
+# 
+# eff <- efficiencies(bd_dea_mod1_data_calc)
+# 1/eff
+
+#summary(modelo_basico_1)
+
+```
+
+### Gráfico de barra {.tabset .tabset-fade .tabset-pills}
+```{r mod2 graficos resultado eficiencia 2f, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Percentual de aproximação com a fronteira de eficiência 100% nos estados da RBMLQ-I
+graf_bar_horiz_eff <- function(bd_temp,bd_temp2,bd_temp3,bd_temp4){
+a <- ggplot(data = bd_temp, aes(x= per100,y = uf))+
+      geom_col(aes(fill = eficiencia))+
+      scale_fill_manual(values=c("#32CD32","#1E90FF","#FF8C00"))+
+      geom_text(aes(label = per100), hjust = 1)+ # Acrescenta números ao gráfico
+      #theme_classic(base_size = 10)+
+      theme_bw(base_size = 10)+
+      labs(title = bd_temp3,
+      fill=bd_temp2)+
+      xlab(bd_temp4)+
+      ylab("UF")
+
+plot_grid(a, ncol = 1, nrow = 1,rel_widths = c(1, 1))
+return (a)
+}
+graf_bar_horiz_eff(result_dea_eff_mod2,titulo_intervalo_eff[1],titulo_graf_eff[2],descri_modelos[2])
+
+```
+
+### Mapa Brasil de aproximação com a fronteira de eficiência 100% nos estados da RBMLQ-I {.tabset .tabset-fade .tabset-pills}
+```{r mod2 banco mapa brasil resultado eficiencia 2g, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 10,echo=FALSE, results='hide'}
+#Mapa
+
+#Parte V - Criar um data.frame com os dados do mapa BRASIL 2020 usando geobr - Fonte de pesquisa (https://jodavid.github.io/post/gerando-um-mapa-com-geobr-no-r/)
+# br_2020 <- read_state(code_state="all", year=2020)
+# str(br_2020)
+
+# br_2020 <- br_2020[(-27),] #Retirar dos dados do Distrito Federal- DF, devido não termos os dados do mesmo separado do Goiá para usar. 
+# str(br_2020)
+
+#Renomear nome da culuna de UF
+#br_2020 <- rename(br_2020, uf = abbrev_state)
+
+#write.table(BR_2020, file = "br_mapas_2020.csv", sep=";", col.names = NA, row.names = TRUE) #Exportar dados geográficos para leitura em Excel
+
+#Parte VI - Unir as bases de dados de georreferenciamento do IBGE com os dados dos clusters dos estados.
+map_dea_2021_mod2 <- full_join(br_2020,result_dea_eff_mod2, by="uf")
+#str(map_dea_2021_mod2)
+
+#write.table(MAPA_2012, file = "br_mapas_2020", sep=";", col.names = TRUE, row.names = TRUE) #Exportar dados geográficos para leitura em Excel
+```
+
+```{r mod2 mapa brasil resultado eficiencia 2h, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 10,echo=FALSE, results='hide'}
+#Parte VII - Inicar o trabalho de confeccionar o mapa
+mapa_br_eff <- function(bd_temp,bd_temp2,bd_temp3,bd_temp4,bd_temp5){
+b <- ggplot(bd_temp)+
+  geom_sf(aes(fill= eficiencia), colour = "black", size = 0.1)+
+  scale_fill_manual(values=c("#32CD32","#1E90FF","#FF8C00"))+
+  xlab("") +  ylab("")+
+  geom_sf_label(aes(label = str_c(uf," - ",per100)),label.padding = unit(0.5, "mm"),size = 3)+ 
+  annotation_scale(location = "br",
+                   height = unit(0.5, "cm"),
+                   width = unit(0.5, "cm"))+  #Inserir escala (t em cima e b em baixo) e (r direita e l esquerdo)
+  annotation_north_arrow(location = "tr", 
+                         style = north_arrow_nautical,
+                         height = unit(4.5, "cm"),
+                         width = unit(4.5, "cm"))+ #Inserir rosa dos ventos (t em cima e b em baixo) e (r direita e l esquerdo)
+  # geom_image(aes(x=-37, y=-27), #Inserir imagem.
+  #            image="D:/01_Digea/02_Proj/02_Proj_CP/01 Fase I/09_4_Etapa/01_VERIF_INSTR_PER_2012_2021/Mapas/Marca Inmetro/vertical-preta-traco.png",
+  #            size=0.15)+
+  labs(title = str_c(bd_temp2,bd_temp5, sep = " - "), #Inserir título e subtítulo.
+       subtitle = bd_temp3,
+       fill=bd_temp4, #Especificar a nome da legenda
+       x=NULL,
+       y=NULL)+
+  theme_bw(base_size = 10) +
+  theme(legend.position = c(0.18,0.2), #Especificar a posição da legenda.
+        legend.key.size = unit(10,"mm")) #Especificar tamanho da legenda.
+
+plot_grid(b, ncol = 1, nrow = 1,rel_widths = c(1, 1))
+return (b)
+}
+mapa_br_eff(map_dea_2021_mod2,titulo_mapa_modelo[2],ano[1],titulo_intervalo_eff[1],descri_modelos[2])
+
+```
+
+
+
+
+
+## **`r nome_modelos[3]`** {.tabset .tabset-fade .tabset-pills}
+```{r mod3 Banco   2a, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Importando dados modelo 1
+#setwd("D:/01_Digea/02_Proj/02_Proj_CP/03 Fase II/01 DEA/01 Modelo 02/05 DEA/")
+
+#bd_m_dea_12_2021 <- read_excel("bd_m_dea_12_2021.xlsx", sheet=1, col_names=TRUE)
+bd_dea_mod3 <- select(bd_dea_final,uf,zf_ftp,zf_custeio_t,zs_infra,zy_ubp_1000_hab)
+```
+
+### Tabela de dados **`r nome_modelos[3]`** - **`r descri_modelos[3]`** {.tabset .tabset-fade .tabset-pills}
+```{r mod3 Tabela de dados completa Original 2b, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+## Tabela de dados completa Original
+bd_tabela_dados <- function(bd_temp,bd_temp2,bd_temp3){
+bd_temp4 <- c(bd_temp2,bd_temp3)  
+kable(bd_temp,"html",caption = bd_temp4) %>%
+   kable_styling(bootstrap_options = c("striped"),
+                full_width = T,
+                font_size = 15) %>%
+   scroll_box(height = "600px")
+}
+bd_tabela_dados(bd_dea_mod3,titulo_tab_mod[3],descri_modelos[3])
+
+```
+
+### Sumário da Tabela de dados do **`r nome_modelos[3]`** - **`r descri_modelos[3]`** {.tabset .tabset-fade .tabset-pills}
+```{r mod3 Sumário da Tabela com dados tratado com pesos nas variáveis estruturantes para criação da variável "INFRA" 2c, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+summary(bd_dea_mod3)
+```
+```{r mod3 var geo padronização dos dados mod2 1, warning = FALSE, message = FALSE, echo = FALSE}
+#Padronização em escala
+# bd_dea_escala <- function(bd_temp){
+# a <- data.frame(scale(bd_temp[,2:4])) ##Normalização de um conjunto de dados usando o valor médio e o desvio padrão é conhecida como dimensionamento.
+# a$uf <- bd_temp$uf #Adiciona os nomes das UF
+# a <- a[,c(4,1:3)] #Re-ordenar colunas
+# return (a)
+# }
+# bd_dea_mod1_escale <- bd_dea_escala(bd_dea_mod1)
+```
+
+```{r mod3 Sumário da Tabela com dados tratado com pesos nas variáveis estruturantes para criação da variável "INFRA" 2d, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+# summary(bd_dea_mod1_escale)
+```
+
+```{r mod3 Data Envelopment Analysis: R dear mod3 2e, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#### Cálculo de eficiência do Modelo 1 - x = FT, CUSTEIO e y = UBP total - 2021 JAN e DEZ
+#Create a "read_data" object
+bd_data_dea <- function(bd_temp){
+a <- read_data(bd_temp, dmus = 1,
+                          ni = 3,
+                          no = 1)
+return (a)
+}
+bd_dea_mod3_data <- bd_data_dea(bd_dea_mod3)
+
+
+#Solve the 2 stage DEA model "oi" ou "oo"  / "vrs" ou "crs"
+bd_data_dea_calc <- function(bd_temp){
+a <- model_basic(bd_temp,
+                 orientation = c("oo"),
+                 rts = c("crs"))
+return (a)
+}
+bd_dea_mod3_data_calc <- bd_data_dea_calc(bd_dea_mod3_data)  
+
+#recuperar valores do DEA
+result_dea_eff_mod3 <- data.frame(efficiencies(bd_dea_mod3_data_calc)) #show results
+# result_dea_rts <- data.frame(rts(bd_dea_mod1_data_calc))
+# result_dea_slacks <- data.frame(slacks (bd_dea_mod1_data_calc))
+# result_dea_references <- data.frame(references(bd_dea_mod1_data_calc)) #show local rts
+# result_dea_targets <- data.frame(targets(bd_dea_mod1_data_calc))
+# result_dea_lambdas <- data.frame(lambdas(bd_dea_mod1_data_calc))
+
+#Transformar valor de eficiencia em %, ordenar decrescente e e cria fator para as UF
+result_dea_eff_mod3 <- rename(result_dea_eff_mod3, eff = efficiencies.bd_dea_mod3_data_calc.) #Renomeia coluna eff
+
+result_dea_eff_mod3$eff <- ifelse (result_dea_eff_mod3$eff < 1.0, (result_dea_eff_mod3$eff = 0.0000), (result_dea_eff_mod3$eff - 1.0000))
+
+result_dea_eff_mod3$per100 <- percent(result_dea_eff_mod3$eff,1) #Formato percentual com o método percent() neste pacote é usado para representar os vetores numéricos no formato de porcentagem.
+
+result_dea_eff_mod3$uf <- rownames(result_dea_eff_mod3,do.NULL = TRUE, prefix = "row") #Recupera nome das UF do rownames
+#
+
+#Função para criação de coluna de condicional de eficiencia com faixa de tolerancia "Abaixo de 50%", "Média entre 70% e 50%" e "Ideal acima de 70%"
+col_eficiencia <- function(x_temp){
+x_temp <- 
+  x_temp %>% 
+  mutate(eficiencia = case_when(eff <= 1.0000 ~ "A - até 1x aumento capacidade",
+                                 (eff <= 2.000) & (eff > 1.0000) ~ "B - até 2x de aumento capacidade",
+                                 eff > 2.0000 ~ "C - até 5x de aumento capacidade"))
+return(x_temp)
+}
+result_dea_eff_mod3 <- col_eficiencia(result_dea_eff_mod3)
+
+#Criar ordenação por fator
+result_dea_eff_mod3$uf <- factor(as.character(result_dea_eff_mod3$uf), levels = result_dea_eff_mod3$uf[order(result_dea_eff_mod3$per100)])
+
+#Estimating Efficiency scores
+# efficiencies(bd_dea_mod1_data_calc)
+# 
+# eff <- efficiencies(bd_dea_mod1_data_calc)
+# 1/eff
+
+#summary(modelo_basico_1)
+
+```
+
+### Gráfico de barra {.tabset .tabset-fade .tabset-pills}
+```{r mod3 graficos resultado eficiencia 2f, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Percentual de aproximação com a fronteira de eficiência 100% nos estados da RBMLQ-I
+graf_bar_horiz_eff <- function(bd_temp,bd_temp2,bd_temp3,bd_temp4){
+a <- ggplot(data = bd_temp, aes(x= per100,y = uf))+
+      geom_col(aes(fill = eficiencia))+
+      scale_fill_manual(values=c("#32CD32","#1E90FF","#FF8C00"))+
+      geom_text(aes(label = per100), hjust = 1)+ # Acrescenta números ao gráfico
+      #theme_classic(base_size = 10)+
+      theme_bw(base_size = 10)+
+      labs(title = bd_temp3,
+      fill=bd_temp2)+
+      xlab(bd_temp4)+
+      ylab("UF")
+
+plot_grid(a, ncol = 1, nrow = 1,rel_widths = c(1, 1))
+return (a)
+}
+graf_bar_horiz_eff(result_dea_eff_mod3,titulo_intervalo_eff[1],titulo_graf_eff[3],descri_modelos[3])
+
+```
+
+### Mapa Brasil de aproximação com a fronteira de eficiência 100% nos estados da RBMLQ-I {.tabset .tabset-fade .tabset-pills}
+```{r mod3 banco mapa brasil resultado eficiencia 2g, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 10,echo=FALSE, results='hide'}
+#Mapa
+
+#Parte V - Criar um data.frame com os dados do mapa BRASIL 2020 usando geobr - Fonte de pesquisa (https://jodavid.github.io/post/gerando-um-mapa-com-geobr-no-r/)
+# br_2020 <- read_state(code_state="all", year=2020)
+# str(br_2020)
+
+# br_2020 <- br_2020[(-27),] #Retirar dos dados do Distrito Federal- DF, devido não termos os dados do mesmo separado do Goiá para usar. 
+# str(br_2020)
+
+#Renomear nome da culuna de UF
+#br_2020 <- rename(br_2020, uf = abbrev_state)
+
+#write.table(BR_2020, file = "br_mapas_2020.csv", sep=";", col.names = NA, row.names = TRUE) #Exportar dados geográficos para leitura em Excel
+
+#Parte VI - Unir as bases de dados de georreferenciamento do IBGE com os dados dos clusters dos estados.
+map_dea_2021_mod3 <- full_join(br_2020,result_dea_eff_mod3, by="uf")
+#str(map_dea_2021_mod2)
+
+#write.table(MAPA_2012, file = "br_mapas_2020", sep=";", col.names = TRUE, row.names = TRUE) #Exportar dados geográficos para leitura em Excel
+```
+
+```{r mod3 mapa brasil resultado eficiencia 2h, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 10,echo=FALSE, results='hide'}
+#Parte VII - Inicar o trabalho de confeccionar o mapa
+mapa_br_eff <- function(bd_temp,bd_temp2,bd_temp3,bd_temp4,bd_temp5){
+b <- ggplot(bd_temp)+
+  geom_sf(aes(fill= eficiencia), colour = "black", size = 0.1)+
+  scale_fill_manual(values=c("#32CD32","#1E90FF","#FF8C00"))+
+  xlab("") +  ylab("")+
+  geom_sf_label(aes(label = str_c(uf," - ",per100)),label.padding = unit(0.5, "mm"),size = 3)+ 
+  annotation_scale(location = "br",
+                   height = unit(0.5, "cm"),
+                   width = unit(0.5, "cm"))+  #Inserir escala (t em cima e b em baixo) e (r direita e l esquerdo)
+  annotation_north_arrow(location = "tr", 
+                         style = north_arrow_nautical,
+                         height = unit(4.5, "cm"),
+                         width = unit(4.5, "cm"))+ #Inserir rosa dos ventos (t em cima e b em baixo) e (r direita e l esquerdo)
+  # geom_image(aes(x=-37, y=-27), #Inserir imagem.
+  #            image="D:/01_Digea/02_Proj/02_Proj_CP/01 Fase I/09_4_Etapa/01_VERIF_INSTR_PER_2012_2021/Mapas/Marca Inmetro/vertical-preta-traco.png",
+  #            size=0.15)+
+  labs(title = str_c(bd_temp2,bd_temp5, sep = " - "), #Inserir título e subtítulo.
+       subtitle = bd_temp3,
+       fill=bd_temp4, #Especificar a nome da legenda
+       x=NULL,
+       y=NULL)+
+  theme_bw(base_size = 9) +
+  theme(legend.position = c(0.18,0.2), #Especificar a posição da legenda.
+        legend.key.size = unit(10,"mm")) #Especificar tamanho da legenda.
+
+plot_grid(b, ncol = 1, nrow = 1,rel_widths = c(1, 1))
+return (b)
+}
+mapa_br_eff(map_dea_2021_mod3,titulo_mapa_modelo[3],ano[1],titulo_intervalo_eff[1],descri_modelos[3])
+
+```
+
+
+
+
+
+## **`r nome_modelos[4]`** {.tabset .tabset-fade .tabset-pills}
+```{r mod4 Banco   2a, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Importando dados modelo 1
+#setwd("D:/01_Digea/02_Proj/02_Proj_CP/03 Fase II/01 DEA/01 Modelo 02/05 DEA/")
+
+#bd_m_dea_12_2021 <- read_excel("bd_m_dea_12_2021.xlsx", sheet=1, col_names=TRUE)
+bd_dea_mod4 <- select(bd_dea_final,uf,zf_ftp,zf_custeio_t,zs_infra,zy_ubp_1000_hab,rec_gerad_2021)
+```
+
+### Tabela de dados **`r nome_modelos[4]`** - **`r descri_modelos[4]`** {.tabset .tabset-fade .tabset-pills}
+```{r mod4 Tabela de dados completa Original 2b, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+## Tabela de dados completa Original
+bd_tabela_dados <- function(bd_temp,bd_temp2,bd_temp3){
+bd_temp4 <- c(bd_temp2,bd_temp3)  
+kable(bd_temp,"html",caption = bd_temp4) %>%
+   kable_styling(bootstrap_options = c("striped"),
+                full_width = T,
+                font_size = 15) %>%
+   scroll_box(height = "600px")
+}
+bd_tabela_dados(bd_dea_mod4,titulo_tab_mod[4],descri_modelos[4])
+
+```
+
+### Sumário da Tabela de dados do **`r nome_modelos[4]`** - **`r descri_modelos[4]`** {.tabset .tabset-fade .tabset-pills}
+```{r mod4 Sumário da Tabela com dados tratado com pesos nas variáveis estruturantes para criação da variável "INFRA" 2c, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+summary(bd_dea_mod4)
+```
+
+```{r mod4 var geo padronização dos dados mod2 1, warning = FALSE, message = FALSE, echo = FALSE}
+#Padronização em escala
+# bd_dea_escala <- function(bd_temp){
+# a <- data.frame(scale(bd_temp[,2:4])) ##Normalização de um conjunto de dados usando o valor médio e o desvio padrão é conhecida como dimensionamento.
+# a$uf <- bd_temp$uf #Adiciona os nomes das UF
+# a <- a[,c(4,1:3)] #Re-ordenar colunas
+# return (a)
+# }
+# bd_dea_mod1_escale <- bd_dea_escala(bd_dea_mod1)
+```
+
+```{r mod4 Sumário da Tabela com dados tratado com pesos nas variáveis estruturantes para criação da variável "INFRA" 2d, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+# summary(bd_dea_mod1_escale)
+```
+
+```{r mod4 Data Envelopment Analysis: R dear mod4 2e, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#### Cálculo de eficiência do Modelo 1 - x = FT, CUSTEIO e y = UBP total - 2021 JAN e DEZ
+#Create a "read_data" object
+bd_data_dea <- function(bd_temp){
+a <- read_data(bd_temp, dmus = 1,
+                          ni = 3,
+                          no = 2)
+return (a)
+}
+bd_dea_mod4_data <- bd_data_dea(bd_dea_mod4)
+
+
+#Solve the 2 stage DEA model "oi" ou "oo"  / "vrs" ou "crs"
+bd_data_dea_calc <- function(bd_temp){
+a <- model_basic(bd_temp,
+                 orientation = c("oo"),
+                 rts = c("crs"))
+return (a)
+}
+bd_dea_mod4_data_calc <- bd_data_dea_calc(bd_dea_mod4_data)  
+
+#recuperar valores do DEA
+result_dea_eff_mod4 <- data.frame(efficiencies(bd_dea_mod4_data_calc)) #show results
+# result_dea_rts <- data.frame(rts(bd_dea_mod1_data_calc))
+# result_dea_slacks <- data.frame(slacks (bd_dea_mod1_data_calc))
+# result_dea_references <- data.frame(references(bd_dea_mod1_data_calc)) #show local rts
+# result_dea_targets <- data.frame(targets(bd_dea_mod1_data_calc))
+# result_dea_lambdas <- data.frame(lambdas(bd_dea_mod1_data_calc))
+
+#Transformar valor de eficiencia em %, ordenar decrescente e e cria fator para as UF
+result_dea_eff_mod4 <- rename(result_dea_eff_mod4, eff = efficiencies.bd_dea_mod4_data_calc.) #Renomeia coluna eff
+
+result_dea_eff_mod4$eff <- ifelse (result_dea_eff_mod4$eff < 1.0, (result_dea_eff_mod4$eff = 0.0000), (result_dea_eff_mod4$eff - 1.0000))
+
+result_dea_eff_mod4$per100 <- percent(result_dea_eff_mod4$eff,1) #Formato percentual com o método percent() neste pacote é usado para representar os vetores numéricos no formato de porcentagem.
+
+result_dea_eff_mod4$uf <- rownames(result_dea_eff_mod4,do.NULL = TRUE, prefix = "row") #Recupera nome das UF do rownames
+#
+
+#Função para criação de coluna de condicional de eficiencia com faixa de tolerancia "Abaixo de 50%", "Média entre 70% e 50%" e "Ideal acima de 70%"
+col_eficiencia <- function(x_temp){
+x_temp <- 
+  x_temp %>% 
+  mutate(eficiencia = case_when(eff <= 1.0000 ~ "A - até 1x aumento capacidade",
+                                 (eff <= 2.000) & (eff > 1.0000) ~ "B - até 2x de aumento capacidade",
+                                 eff > 2.0000 ~ "C - até 5x de aumento capacidade"))
+return(x_temp)
+}
+result_dea_eff_mod4 <- col_eficiencia(result_dea_eff_mod4)
+
+#Criar ordenação por fator
+result_dea_eff_mod4$uf <- factor(as.character(result_dea_eff_mod4$uf), levels = result_dea_eff_mod4$uf[order(result_dea_eff_mod4$per100)])
+
+#Estimating Efficiency scores
+# efficiencies(bd_dea_mod1_data_calc)
+# 
+# eff <- efficiencies(bd_dea_mod1_data_calc)
+# 1/eff
+
+#summary(modelo_basico_1)
+
+```
+
+### Gráfico de barra {.tabset .tabset-fade .tabset-pills}
+```{r mod4 graficos resultado eficiencia 2f, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Percentual de aproximação com a fronteira de eficiência 100% nos estados da RBMLQ-I
+graf_bar_horiz_eff <- function(bd_temp,bd_temp2,bd_temp3,bd_temp4){
+a <- ggplot(data = bd_temp, aes(x= per100,y = uf))+
+      geom_col(aes(fill = eficiencia))+
+      scale_fill_manual(values=c("#32CD32","#1E90FF","#FF8C00"))+
+      geom_text(aes(label = per100), hjust = 1)+ # Acrescenta números ao gráfico
+      #theme_classic(base_size = 10)+
+      theme_bw(base_size = 10)+
+      labs(title = bd_temp3,
+      fill=bd_temp2)+
+      xlab(bd_temp4)+
+      ylab("UF")
+
+plot_grid(a, ncol = 1, nrow = 1,rel_widths = c(1, 1))
+return (a)
+}
+graf_bar_horiz_eff(result_dea_eff_mod4,titulo_intervalo_eff[1],titulo_graf_eff[4],descri_modelos[4])
+
+```
+
+### Mapa Brasil de aproximação com a fronteira de eficiência 100% nos estados da RBMLQ-I {.tabset .tabset-fade .tabset-pills}
+```{r mod4 banco mapa brasil resultado eficiencia 2g, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 10,echo=FALSE, results='hide'}
+#Mapa
+
+#Parte V - Criar um data.frame com os dados do mapa BRASIL 2020 usando geobr - Fonte de pesquisa (https://jodavid.github.io/post/gerando-um-mapa-com-geobr-no-r/)
+# br_2020 <- read_state(code_state="all", year=2020)
+# str(br_2020)
+
+# br_2020 <- br_2020[(-27),] #Retirar dos dados do Distrito Federal- DF, devido não termos os dados do mesmo separado do Goiá para usar. 
+# str(br_2020)
+
+#Renomear nome da culuna de UF
+#br_2020 <- rename(br_2020, uf = abbrev_state)
+
+#write.table(BR_2020, file = "br_mapas_2020.csv", sep=";", col.names = NA, row.names = TRUE) #Exportar dados geográficos para leitura em Excel
+
+#Parte VI - Unir as bases de dados de georreferenciamento do IBGE com os dados dos clusters dos estados.
+map_dea_2021_mod4 <- full_join(br_2020,result_dea_eff_mod4, by="uf")
+#str(map_dea_2021_mod2)
+
+#write.table(MAPA_2012, file = "br_mapas_2020", sep=";", col.names = TRUE, row.names = TRUE) #Exportar dados geográficos para leitura em Excel
+```
+
+```{r mod4 mapa brasil resultado eficiencia 2h, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 10,echo=FALSE, results='hide'}
+#Parte VII - Inicar o trabalho de confeccionar o mapa
+mapa_br_eff <- function(bd_temp,bd_temp2,bd_temp3,bd_temp4,bd_temp5){
+b <- ggplot(bd_temp)+
+  geom_sf(aes(fill= eficiencia), colour = "black", size = 0.1)+
+  scale_fill_manual(values=c("#32CD32","#1E90FF","#FF8C00"))+
+  xlab("") +  ylab("")+
+  geom_sf_label(aes(label = str_c(uf," - ",per100)),label.padding = unit(0.5, "mm"),size = 3)+ 
+  annotation_scale(location = "br",
+                   height = unit(0.5, "cm"),
+                   width = unit(0.5, "cm"))+  #Inserir escala (t em cima e b em baixo) e (r direita e l esquerdo)
+  annotation_north_arrow(location = "tr", 
+                         style = north_arrow_nautical,
+                         height = unit(4.5, "cm"),
+                         width = unit(4.5, "cm"))+ #Inserir rosa dos ventos (t em cima e b em baixo) e (r direita e l esquerdo)
+  # geom_image(aes(x=-37, y=-27), #Inserir imagem.
+  #            image="D:/01_Digea/02_Proj/02_Proj_CP/01 Fase I/09_4_Etapa/01_VERIF_INSTR_PER_2012_2021/Mapas/Marca Inmetro/vertical-preta-traco.png",
+  #            size=0.15)+
+  labs(title = str_c(bd_temp2,bd_temp5, sep = " - "), #Inserir título e subtítulo.
+       subtitle = bd_temp3,
+       fill=bd_temp4, #Especificar a nome da legenda
+       x=NULL,
+       y=NULL)+
+  theme_bw(base_size = 8) +
+  theme(legend.position = c(0.18,0.2), #Especificar a posição da legenda.
+        legend.key.size = unit(10,"mm")) #Especificar tamanho da legenda.
+
+plot_grid(b, ncol = 1, nrow = 1,rel_widths = c(1, 1))
+return (b)
+}
+mapa_br_eff(map_dea_2021_mod4,titulo_mapa_modelo[4],ano[1],titulo_intervalo_eff[1],descri_modelos[4])
+
+```
+
+
+
+
+
+
+## **`r nome_modelos[5]`** {.tabset .tabset-fade .tabset-pills}
+```{r mod5 Banco   2a, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Importando dados modelo 1
+#setwd("D:/01_Digea/02_Proj/02_Proj_CP/03 Fase II/01 DEA/01 Modelo 02/05 DEA/")
+
+#bd_m_dea_12_2021 <- read_excel("bd_m_dea_12_2021.xlsx", sheet=1, col_names=TRUE)
+bd_dea_mod5 <- select(bd_dea_final,uf,zf_ftp,zf_custeio_t,zs_infra,zy_ubp_1000_hab,rec_gerad_2021,zy_custo_ubp_n)
+```
+
+### Tabela de dados **`r nome_modelos[5]`** - **`r descri_modelos[5]`** {.tabset .tabset-fade .tabset-pills}
+```{r mod5 Tabela de dados completa Original 2b, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+## Tabela de dados completa Original
+bd_tabela_dados <- function(bd_temp,bd_temp2,bd_temp3){
+bd_temp4 <- c(bd_temp2,bd_temp3)  
+kable(bd_temp,"html",caption = bd_temp4) %>%
+   kable_styling(bootstrap_options = c("striped"),
+                full_width = T,
+                font_size = 15) %>%
+   scroll_box(height = "600px")
+}
+bd_tabela_dados(bd_dea_mod5,titulo_tab_mod[5],descri_modelos[5])
+
+```
+
+### Sumário da Tabela de dados do **`r nome_modelos[5]`** - **`r descri_modelos[5]`** {.tabset .tabset-fade .tabset-pills}
+```{r mod5 Sumário da Tabela com dados tratado com pesos nas variáveis estruturantes para criação da variável "INFRA" 2c, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+summary(bd_dea_mod5)
+```
+
+```{r mod5 var geo padronização dos dados mod2 1, warning = FALSE, message = FALSE, echo = FALSE}
+#Padronização em escala
+# bd_dea_escala <- function(bd_temp){
+# a <- data.frame(scale(bd_temp[,2:4])) ##Normalização de um conjunto de dados usando o valor médio e o desvio padrão é conhecida como dimensionamento.
+# a$uf <- bd_temp$uf #Adiciona os nomes das UF
+# a <- a[,c(4,1:3)] #Re-ordenar colunas
+# return (a)
+# }
+# bd_dea_mod1_escale <- bd_dea_escala(bd_dea_mod1)
+```
+
+```{r mod5 Sumário da Tabela com dados tratado com pesos nas variáveis estruturantes para criação da variável "INFRA" 2d, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+# summary(bd_dea_mod1_escale)
+```
+
+```{r mod5 Data Envelopment Analysis: R dear mod5 2e, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#### Cálculo de eficiência do Modelo 1 - x = FT, CUSTEIO e y = UBP total - 2021 JAN e DEZ
+#Create a "read_data" object
+bd_data_dea <- function(bd_temp){
+a <- read_data(bd_temp, dmus = 1,
+                          ni = 3,
+                          no = 3)
+return (a)
+}
+bd_dea_mod5_data <- bd_data_dea(bd_dea_mod5)
+
+
+#Solve the 2 stage DEA model "oi" ou "oo"  / "vrs" ou "crs"
+bd_data_dea_calc <- function(bd_temp){
+a <- model_basic(bd_temp,
+                 orientation = c("oo"),
+                 rts = c("crs"))
+return (a)
+}
+bd_dea_mod5_data_calc <- bd_data_dea_calc(bd_dea_mod5_data)  
+
+#recuperar valores do DEA
+result_dea_eff_mod5 <- data.frame(efficiencies(bd_dea_mod5_data_calc)) #show results
+# result_dea_rts <- data.frame(rts(bd_dea_mod1_data_calc))
+# result_dea_slacks <- data.frame(slacks (bd_dea_mod1_data_calc))
+# result_dea_references <- data.frame(references(bd_dea_mod1_data_calc)) #show local rts
+# result_dea_targets <- data.frame(targets(bd_dea_mod1_data_calc))
+# result_dea_lambdas <- data.frame(lambdas(bd_dea_mod1_data_calc))
+
+#Transformar valor de eficiencia em %, ordenar decrescente e e cria fator para as UF
+result_dea_eff_mod5 <- rename(result_dea_eff_mod5, eff = efficiencies.bd_dea_mod5_data_calc.) #Renomeia coluna eff
+
+result_dea_eff_mod5$eff <- ifelse (result_dea_eff_mod5$eff < 1.0, (result_dea_eff_mod5$eff = 0.0000), (result_dea_eff_mod5$eff - 1.0000))
+
+result_dea_eff_mod5$per100 <- percent(result_dea_eff_mod5$eff,1) #Formato percentual com o método percent() neste pacote é usado para representar os vetores numéricos no formato de porcentagem.
+
+result_dea_eff_mod5$uf <- rownames(result_dea_eff_mod5,do.NULL = TRUE, prefix = "row") #Recupera nome das UF do rownames
+#
+
+#Função para criação de coluna de condicional de eficiencia com faixa de tolerancia "Abaixo de 50%", "Média entre 70% e 50%" e "Ideal acima de 70%"
+col_eficiencia <- function(x_temp){
+x_temp <- 
+  x_temp %>% 
+  mutate(eficiencia = case_when(eff <= 1.0000 ~ "A - até 1x aumento capacidade",
+                                 (eff <= 2.000) & (eff > 1.0000) ~ "B - até 2x de aumento capacidade",
+                                 eff > 2.0000 ~ "C - até 5x de aumento capacidade"))
+return(x_temp)
+}
+result_dea_eff_mod5 <- col_eficiencia(result_dea_eff_mod5)
+
+#Criar ordenação por fator
+result_dea_eff_mod5$uf <- factor(as.character(result_dea_eff_mod5$uf), levels = result_dea_eff_mod5$uf[order(result_dea_eff_mod5$per100)])
+
+#Estimating Efficiency scores
+# efficiencies(bd_dea_mod1_data_calc)
+# 
+# eff <- efficiencies(bd_dea_mod1_data_calc)
+# 1/eff
+
+#summary(modelo_basico_1)
+
+```
+
+### Gráfico de barra {.tabset .tabset-fade .tabset-pills}
+```{r mod5 graficos resultado eficiencia 2f, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Percentual de aproximação com a fronteira de eficiência 100% nos estados da RBMLQ-I
+graf_bar_horiz_eff <- function(bd_temp,bd_temp2,bd_temp3,bd_temp4){
+a <- ggplot(data = bd_temp, aes(x= per100,y = uf))+
+      geom_col(aes(fill = eficiencia))+
+      scale_fill_manual(values=c("#32CD32","#1E90FF","#FF8C00"))+
+      geom_text(aes(label = per100), hjust = 1)+ # Acrescenta números ao gráfico
+      #theme_classic(base_size = 10)+
+      theme_bw(base_size = 10)+
+      labs(title = bd_temp3,
+      fill=bd_temp2)+
+      xlab(bd_temp4)+
+      ylab("UF")
+
+plot_grid(a, ncol = 1, nrow = 1,rel_widths = c(1, 1))
+return (a)
+}
+graf_bar_horiz_eff(result_dea_eff_mod5,titulo_intervalo_eff[1],titulo_graf_eff[5],descri_modelos[5])
+
+```
+
+### Mapa Brasil de aproximação com a fronteira de eficiência 100% nos estados da RBMLQ-I {.tabset .tabset-fade .tabset-pills}
+```{r mod5 banco mapa brasil resultado eficiencia 2g, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 10,echo=FALSE, results='hide'}
+#Mapa
+
+#Parte V - Criar um data.frame com os dados do mapa BRASIL 2020 usando geobr - Fonte de pesquisa (https://jodavid.github.io/post/gerando-um-mapa-com-geobr-no-r/)
+# br_2020 <- read_state(code_state="all", year=2020)
+# str(br_2020)
+
+# br_2020 <- br_2020[(-27),] #Retirar dos dados do Distrito Federal- DF, devido não termos os dados do mesmo separado do Goiá para usar. 
+# str(br_2020)
+
+#Renomear nome da culuna de UF
+#br_2020 <- rename(br_2020, uf = abbrev_state)
+
+#write.table(BR_2020, file = "br_mapas_2020.csv", sep=";", col.names = NA, row.names = TRUE) #Exportar dados geográficos para leitura em Excel
+
+#Parte VI - Unir as bases de dados de georreferenciamento do IBGE com os dados dos clusters dos estados.
+map_dea_2021_mod5 <- full_join(br_2020,result_dea_eff_mod5, by="uf")
+#str(map_dea_2021_mod2)
+
+#write.table(MAPA_2012, file = "br_mapas_2020", sep=";", col.names = TRUE, row.names = TRUE) #Exportar dados geográficos para leitura em Excel
+```
+
+```{r mod5 mapa brasil resultado eficiencia 2h, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 10,echo=FALSE, results='hide'}
+#Parte VII - Inicar o trabalho de confeccionar o mapa
+mapa_br_eff <- function(bd_temp,bd_temp2,bd_temp3,bd_temp4,bd_temp5){
+b <- ggplot(bd_temp)+
+  geom_sf(aes(fill= eficiencia), colour = "black", size = 0.1)+
+  scale_fill_manual(values=c("#32CD32","#1E90FF","#FF8C00"))+
+  xlab("") +  ylab("")+
+  geom_sf_label(aes(label = str_c(uf," - ",per100)),label.padding = unit(0.5, "mm"),size = 3)+ 
+  annotation_scale(location = "br",
+                   height = unit(0.5, "cm"),
+                   width = unit(0.5, "cm"))+  #Inserir escala (t em cima e b em baixo) e (r direita e l esquerdo)
+  annotation_north_arrow(location = "tr", 
+                         style = north_arrow_nautical,
+                         height = unit(4.5, "cm"),
+                         width = unit(4.5, "cm"))+ #Inserir rosa dos ventos (t em cima e b em baixo) e (r direita e l esquerdo)
+  # geom_image(aes(x=-37, y=-27), #Inserir imagem.
+  #            image="D:/01_Digea/02_Proj/02_Proj_CP/01 Fase I/09_4_Etapa/01_VERIF_INSTR_PER_2012_2021/Mapas/Marca Inmetro/vertical-preta-traco.png",
+  #            size=0.15)+
+  labs(title = str_c(bd_temp2,bd_temp5, sep = " - "), #Inserir título e subtítulo.
+       subtitle = bd_temp3,
+       fill=bd_temp4, #Especificar a nome da legenda
+       x=NULL,
+       y=NULL)+
+  theme_bw(base_size =7.5) +
+  theme(legend.position = c(0.18,0.2), #Especificar a posição da legenda.
+        legend.key.size = unit(10,"mm")) #Especificar tamanho da legenda.
+
+plot_grid(b, ncol = 1, nrow = 1,rel_widths = c(1, 1))
+return (b)
+}
+mapa_br_eff(map_dea_2021_mod5,titulo_mapa_modelo[5],ano[1],titulo_intervalo_eff[1],descri_modelos[5])
+
+```
+
+
+
+
+
+
+# Diversos {.tabset .tabset-fade}
+
+## Créditos - Participantes do Projeto Capacidade Produtiva:
+
+**PATROCINADORES DO PROJETO**\
+xx
+
+**COORDENADORES DO PROJETO**\
+xx
+
+**MEMBROS DO PROJETO**\
+Allan Batista Martins,\
+xx
+
+## Material de Apoio
+
+-   Tabela de Cores HTML (nome, hexadecimal e RGB):
+
+-   Tutorial - Data Envelopment Analysis with deaR:
+
+-   Tratamento de Outliers (Bacon) - R na Pesquisa Contábil: [Alessanderson Jacó de Carvalho](https://youtu.be/hfO5LLbRioY)
+
+-   PLAYLIST - R na Pesquisa Contábil (Parte 1 ao 20):
+
+-   Utilização da metodologia DEA (Data Envelopment Analysis) para avaliar o impacto das TIC sobre a produtividade na indústria da hospitalidade:
+
+-   PLAYLIST - Criando gráficos no R com o ggplot2 (Parte 1 ao 2): [Fernanda Peres](https://youtu.be/DYsPRa3vpf0)
+
+-   PLAYLIST - R Markdown: Gerando relatórios usando o R (Parte 1 ao 5): [Fernanda Peres](https://youtu.be/obxa5VH4WvY)
+
+-   Minicurso R - UFPR: [UFPR](https://youtu.be/obxa5VH4WvY)
+
+-   R Markdown: The Definitive Guide: [Yihui Xie, J. J. Allaire, Garrett Grolemund](https://bookdown.org/yihui/rmarkdown/)
