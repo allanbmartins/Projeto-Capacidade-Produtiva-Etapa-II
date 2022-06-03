@@ -92,11 +92,15 @@ titulo_intervalo_eff <- c("Intervalo de Eficiência")
 titulo_graf_eff <- c("Percentual de aproximação com a fronteira de eficiência 100% - Modelo 1","Percentual de aproximação com a fronteira de eficiência 100% - Modelo 2","Percentual de aproximação com a fronteira de eficiência 100% - Modelo 3","Percentual de aproximação com a fronteira de eficiência 100% - Modelo 4","Percentual de aproximação com a fronteira de eficiência 100% - Modelo 5","Percentual de aproximação com a fronteira de eficiência 100% - Modelo 6")
 
 titulo_mapa_modelo <- c("Mapa Brasil do Percentual de aproximação com a fronteira de eficiência 100% - Modelo 1","Mapa Brasil do Percentual de aproximação com a fronteira de eficiência 100% - Modelo 2","Mapa Brasil do Percentual de aproximação com a fronteira de eficiência 100% - Modelo 3","Mapa Brasil do Percentual de aproximação com a fronteira de eficiência 100% - Modelo 4","Mapa Brasil do Percentual de aproximação com a fronteira de eficiência 100% - Modelo 5","Mapa Brasil do Percentual de aproximação com a fronteira de eficiência 100% - Modelo 6")
+
+titulo_graf_disp <- c("Gráfico de Dispersão", "Gráfico de barra")
+titulo_graf_disp_mod <- c("1º - Modelo 3 (com INFRA) x Modelo 2 (sem INFRA)","2° - Modelo 4 x Modelo 3","3° - Modelo 5 × Modelo 4")
 ```
 
 ```{r var Leitura banco de dedos completo, warning = FALSE, message = FALSE, echo = FALSE, results='hide'}
 #Importando
-setwd("D:/01_Digea/02_Proj/02_Proj_CP/03 Fase II/01 DEA/01 Modelo 02/05 DEA")
+setwd("D:/01_Digea/02_Proj/02_Proj_CP/02 Etapa-II/07 - Reutilizar a DEA com a inclusão da variável de INFRA")
+
 
 bd_m_dea_12_2021 <- read_excel("bd_zy_zf_zs_2021_trab_v5.xlsx", sheet=1, col_names=TRUE)
 #bd_m_dea_12_2021 <- read_excel(file.choose(), sheet=1, col_names=TRUE)
@@ -359,7 +363,7 @@ mapa_br_eff(map_infra_2021,titulo_graf_infra[1][1],ano[1],titulo_intervalo_escal
 
 # Etapa II - Geração Modelos de Análise Envoltória de Dados (DEA) - 2021 JAN e DEZ {.tabset .tabset-fade .tabset-pills}
 
-![MODELOS DE EFICIÊNCIA (DEA)](D:/01_Digea/02_Proj/02_Proj_CP/03%20Fase%20II/01%20DEA/01%20Modelo%2002/05%20DEA/1%20-%20Modelos%20de%20Efici%C3%AAncia%20(DEA).png)
+![MODELOS DE EFICIÊNCIA (DEA)](D:/01_Digea/02_Proj/02_Proj_CP/02 Etapa-II/07 - Reutilizar a DEA com a inclusão da variável de INFRA/1%20-%20Modelos%20de%20Efici%C3%AAncia%20(DEA).png)
 
 
 
@@ -368,7 +372,7 @@ mapa_br_eff(map_infra_2021,titulo_graf_infra[1][1],ano[1],titulo_intervalo_escal
 ## **`r nome_modelos[1]`** {.tabset .tabset-fade .tabset-pills}
 ```{r mod1 Banco  2a, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
 #Importando dados modelo 1
-setwd("D:/01_Digea/02_Proj/02_Proj_CP/03 Fase II/01 DEA/01 Modelo 02/05 DEA/")
+setwd("D:/01_Digea/02_Proj/02_Proj_CP/02 Etapa-II/07 - Reutilizar a DEA com a inclusão da variável de INFRA")
 
 bd_m_dea_12_2021 <- read_excel("bd_m_dea_12_2021.xlsx", sheet=1, col_names=TRUE)
 bd_dea_mod1 <- bd_m_dea_12_2021
@@ -545,7 +549,7 @@ mapa_br_eff(map_dea_2021,titulo_mapa_modelo[1],ano[1],titulo_intervalo_eff[1],de
 ## **`r nome_modelos[2]`** {.tabset .tabset-fade .tabset-pills}
 ```{r mod2 Banco   2a, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
 #Importando dados modelo 1
-#setwd("D:/01_Digea/02_Proj/02_Proj_CP/03 Fase II/01 DEA/01 Modelo 02/05 DEA/")
+#setwd("D:/01_Digea/02_Proj/02_Proj_CP/02 Etapa-II/07 - Reutilizar a DEA com a inclusão da variável de INFRA")
 
 #bd_m_dea_12_2021 <- read_excel("bd_m_dea_12_2021.xlsx", sheet=1, col_names=TRUE)
 bd_dea_mod2 <- select(bd_dea_final,uf,zf_ftp,zf_custeio_t,zy_ubp_1000_hab)
@@ -732,7 +736,7 @@ mapa_br_eff(map_dea_2021_mod2,titulo_mapa_modelo[2],ano[1],titulo_intervalo_eff[
 ## **`r nome_modelos[3]`** {.tabset .tabset-fade .tabset-pills}
 ```{r mod3 Banco   2a, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
 #Importando dados modelo 1
-#setwd("D:/01_Digea/02_Proj/02_Proj_CP/03 Fase II/01 DEA/01 Modelo 02/05 DEA/")
+#setwd("D:/01_Digea/02_Proj/02_Proj_CP/02 Etapa-II/07 - Reutilizar a DEA com a inclusão da variável de INFRA")
 
 #bd_m_dea_12_2021 <- read_excel("bd_m_dea_12_2021.xlsx", sheet=1, col_names=TRUE)
 bd_dea_mod3 <- select(bd_dea_final,uf,zf_ftp,zf_custeio_t,zs_infra,zy_ubp_1000_hab)
@@ -918,7 +922,7 @@ mapa_br_eff(map_dea_2021_mod3,titulo_mapa_modelo[3],ano[1],titulo_intervalo_eff[
 ## **`r nome_modelos[4]`** {.tabset .tabset-fade .tabset-pills}
 ```{r mod4 Banco   2a, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
 #Importando dados modelo 1
-#setwd("D:/01_Digea/02_Proj/02_Proj_CP/03 Fase II/01 DEA/01 Modelo 02/05 DEA/")
+#setwd("D:/01_Digea/02_Proj/02_Proj_CP/02 Etapa-II/07 - Reutilizar a DEA com a inclusão da variável de INFRA")
 
 #bd_m_dea_12_2021 <- read_excel("bd_m_dea_12_2021.xlsx", sheet=1, col_names=TRUE)
 bd_dea_mod4 <- select(bd_dea_final,uf,zf_ftp,zf_custeio_t,zs_infra,zy_ubp_1000_hab,rec_gerad_2021)
@@ -1106,7 +1110,7 @@ mapa_br_eff(map_dea_2021_mod4,titulo_mapa_modelo[4],ano[1],titulo_intervalo_eff[
 ## **`r nome_modelos[5]`** {.tabset .tabset-fade .tabset-pills}
 ```{r mod5 Banco   2a, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
 #Importando dados modelo 1
-#setwd("D:/01_Digea/02_Proj/02_Proj_CP/03 Fase II/01 DEA/01 Modelo 02/05 DEA/")
+#setwd("D:/01_Digea/02_Proj/02_Proj_CP/02 Etapa-II/07 - Reutilizar a DEA com a inclusão da variável de INFRA")
 
 #bd_m_dea_12_2021 <- read_excel("bd_m_dea_12_2021.xlsx", sheet=1, col_names=TRUE)
 bd_dea_mod5 <- select(bd_dea_final,uf,zf_ftp,zf_custeio_t,zs_infra,zy_ubp_1000_hab,rec_gerad_2021,zy_custo_ubp_n)
@@ -1288,7 +1292,197 @@ mapa_br_eff(map_dea_2021_mod5,titulo_mapa_modelo[5],ano[1],titulo_intervalo_eff[
 
 
 
+# Etapa III - Comparação entre os Modelos (DEA) gerados na etapa II através de gráfico de dispersão, conforme abaixo - 2021 JAN e DEZ {.tabset .tabset-fade .tabset-pills}
 
+
+```{r bd grafico disp 3a, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Criando data frame para gráfico de dispersão
+bd_graf_disp_mod <- data.frame(bd_dea_final$uf,result_dea_eff$eff,result_dea_eff_mod2$eff,result_dea_eff_mod3$eff,result_dea_eff_mod4$eff,result_dea_eff_mod5$eff)
+
+bd_graf_disp_mod <- rename(bd_graf_disp_mod, uf = bd_dea_final.uf, mod1_eff = result_dea_eff.eff, mod2_eff = result_dea_eff_mod2.eff, mod3_eff = result_dea_eff_mod3.eff, mod4_eff = result_dea_eff_mod4.eff, mod5_eff = result_dea_eff_mod5.eff)
+
+bd_graf_disp_mod_percent <- data.frame(bd_dea_final$uf,result_dea_eff$per100,result_dea_eff_mod2$per100,result_dea_eff_mod3$per100,result_dea_eff_mod4$per100,result_dea_eff_mod5$per100)
+
+bd_graf_disp_mod_percent <- rename(bd_graf_disp_mod_percent, uf = bd_dea_final.uf, mod1_eff = result_dea_eff.per100, mod2_eff = result_dea_eff_mod2.per100, mod3_eff = result_dea_eff_mod3.per100, mod4_eff = result_dea_eff_mod4.per100, mod5_eff = result_dea_eff_mod5.per100)
+
+```
+
+
+## Gráfico de dispersão - 1° Modelo 3 (com INFRA) x Modelo 2 (sem INFRA) {.tabset .tabset-fade .tabset-pills}
+```{r grafico disp 3b, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Gráfico de dispersão - 1° Modelo 3 (com INFRA) x Modelo 2
+ graf_disp_mod <- function(bd_temp,bd_temp2,bd_temp3,bd_temp4,bd_temp5){
+a <- ggplot ()+
+  geom_point(col="blue", fill = "black", size = 2,label = TRUE, show.legend = TRUE,aes(x= bd_temp$mod2_eff,y = bd_temp$mod3_eff))+
+  geom_text(
+    data = bd_temp,
+    aes(
+      x= mod2_eff,
+      y = mod3_eff,
+      label = uf,
+      vjust = -0.5,
+      hjust = -0.5
+    ),
+    show.legend = FALSE,
+    size = 3)+
+  labs(title= str_c(bd_temp2," - ",bd_temp3))+
+  scale_x_continuous(name = bd_temp5) +
+  scale_y_continuous(name = bd_temp4) +
+  geom_abline(intercept = 0, slope = 1, color = "red")+
+  theme_bw()
+
+plot_grid(a, ncol = 1, nrow = 1,rel_widths = c(1, 1))
+return (a)
+}
+graf_disp_mod(bd_graf_disp_mod,titulo_graf_disp[1],titulo_graf_disp_mod[1],nome_modelos[3],nome_modelos[2])
+
+```
+
+
+## Gráfico de barra - 1° Modelo 3 (com INFRA) x Modelo 2 (sem INFRA) {.tabset .tabset-fade .tabset-pills}
+```{r grafico bar 3c, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Gráfico de barra
+graf_bar_vert_mod <- function(bd_temp,bd_temp2,bd_temp3){
+a <- data.frame(bd_temp$uf,bd_temp$mod2_eff,bd_temp$mod3_eff)
+a <- rename(a, uf = bd_temp.uf, mod2_eff = bd_temp.mod2_eff, mod3_eff = bd_temp.mod3_eff)
+a <- arrange(a, desc(mod3_eff))
+a$uf <- factor(as.character(a$uf), levels = a$uf[order(a$mod3_eff, decreasing=TRUE)])
+b <- ggplot(a, aes(x = uf))+
+  geom_col(aes(y= mod3_eff, fill="Mod3"))+
+  geom_col(aes(y= mod2_eff, fill="Mod2"))+
+  scale_y_continuous(labels = percent_format())+
+  theme_bw(base_size = 15)+
+      labs(title = "Mod3 x Mod2")+
+  labs(title = str_c(bd_temp2," - ",bd_temp3),
+      fill="Versus")+
+      xlab("UF")+
+      ylab("Modelos")+
+  #scale_fill_manual(values=c("#32CD32","#FF8C00"))
+  scale_fill_manual(values = c("#FFA07A","#00BFFF"))
+
+plot_grid(b, ncol = 1, nrow = 1,rel_widths = c(1, 1))
+return (b)
+}
+graf_bar_vert_mod(bd_graf_disp_mod_percent,titulo_graf_disp[1],titulo_graf_disp_mod[1])
+
+```
+
+## Gráfico de dispersão - 2° Modelo 4 x Modelo 3 {.tabset .tabset-fade .tabset-pills}
+```{r grafico disp 3d, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Gráfico de dispersão - 2° Modelo 4 x Modelo 3
+ graf_disp_mod <- function(bd_temp,bd_temp2,bd_temp3,bd_temp4,bd_temp5){
+a <- ggplot ()+
+  geom_point(col="blue", fill = "black", size = 2,label = TRUE, show.legend = TRUE,aes(x= bd_temp$mod3_eff,y = bd_temp$mod4_eff))+
+  geom_text(
+    data = bd_temp,
+    aes(
+      x= mod3_eff,
+      y = mod4_eff,
+      label = uf,
+      vjust = -0.5,
+      hjust = -0.5
+    ),
+    show.legend = FALSE,
+    size = 3)+
+  labs(title= str_c(bd_temp2," - ",bd_temp3))+
+  scale_x_continuous(name = bd_temp5) +
+  scale_y_continuous(name = bd_temp4) +
+  geom_abline(intercept = 0, slope = 1, color = "red")+
+  theme_bw()
+
+plot_grid(a, ncol = 1, nrow = 1,rel_widths = c(1, 1))
+return (a)
+}
+graf_disp_mod(bd_graf_disp_mod,titulo_graf_disp[1],titulo_graf_disp_mod[2],nome_modelos[4],nome_modelos[3])
+
+```
+
+## Gráfico de barra - 2° Modelo 4 x Modelo 3 {.tabset .tabset-fade .tabset-pills}
+```{r grafico bar 3f, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Gráfico de barra - 2° Modelo 4 x Modelo 3 (sem INFRA)
+graf_bar_vert_mod <- function(bd_temp,bd_temp2,bd_temp3){
+a <- data.frame(bd_temp$uf,bd_temp$mod3_eff,bd_temp$mod4_eff)
+a <- rename(a, uf = bd_temp.uf, mod3_eff = bd_temp.mod3_eff, mod4_eff = bd_temp.mod4_eff)
+a <- arrange(a, desc(mod4_eff))
+a$uf <- factor(as.character(a$uf), levels = a$uf[order(a$mod4_eff, decreasing=TRUE)])
+b <- ggplot(a, aes(x = uf))+
+  geom_col(aes(y= mod4_eff, fill="Mod4"))+
+  geom_col(aes(y= mod3_eff, fill="Mod3"))+
+  scale_y_continuous(labels = percent_format())+
+  theme_bw(base_size = 15)+
+      labs(title = "Mod4 x Mod3")+
+  labs(title = str_c(bd_temp2," - ",bd_temp3),
+      fill="Versus")+
+      xlab("UF")+
+      ylab("Modelos")+
+  #scale_fill_manual(values=c("#32CD32","#FF8C00"))
+  scale_fill_manual(values = c("#FFA07A","#00BFFF"))
+
+plot_grid(b, ncol = 1, nrow = 1,rel_widths = c(1, 1))
+return (b)
+}
+graf_bar_vert_mod(bd_graf_disp_mod_percent,titulo_graf_disp[2],titulo_graf_disp_mod[2])
+
+```
+
+
+## Gráfico de dispersão - 3° Modelo 5 × Modelo 4 {.tabset .tabset-fade .tabset-pills}
+```{r grafico disp 3g, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Gráfico de dispersão - 3° Modelo 5 × Modelo 4
+ graf_disp_mod <- function(bd_temp,bd_temp2,bd_temp3,bd_temp4,bd_temp5){
+a <- ggplot ()+
+  geom_point(col="blue", fill = "black", size = 2,label = TRUE, show.legend = TRUE,aes(x= bd_temp$mod4_eff,y = bd_temp$mod5_eff))+
+  geom_text(
+    data = bd_temp,
+    aes(
+      x= mod4_eff,
+      y = mod5_eff,
+      label = uf,
+      vjust = -0.5,
+      hjust = -0.5
+    ),
+    show.legend = FALSE,
+    size = 3)+
+  labs(title= str_c(bd_temp2," - ",bd_temp3))+
+  scale_x_continuous(name = bd_temp5) +
+  scale_y_continuous(name = bd_temp4) +
+  geom_abline(intercept = 0, slope = 1, color = "red")+
+  theme_bw()
+
+plot_grid(a, ncol = 1, nrow = 1,rel_widths = c(1, 1))
+return (a)
+}
+graf_disp_mod(bd_graf_disp_mod,titulo_graf_disp[1],titulo_graf_disp_mod[3],nome_modelos[5],nome_modelos[4])
+
+```
+
+## Gráfico de barra - 3° Modelo 5 × Modelo 4 {.tabset .tabset-fade .tabset-pills}
+```{r grafico bar 3h, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Gráfico de barra - 3° Modelo 5 × Modelo 4
+graf_bar_vert_mod <- function(bd_temp,bd_temp2,bd_temp3){
+a <- data.frame(bd_temp$uf,bd_temp$mod4_eff,bd_temp$mod5_eff)
+a <- rename(a, uf = bd_temp.uf, mod4_eff = bd_temp.mod4_eff, mod5_eff = bd_temp.mod5_eff)
+a <- arrange(a, desc(mod5_eff))
+a$uf <- factor(as.character(a$uf), levels = a$uf[order(a$mod5_eff, decreasing=TRUE)])
+b <- ggplot(a, aes(x = uf))+
+  geom_col(aes(y= mod5_eff, fill="Mod4"))+
+  geom_col(aes(y= mod4_eff, fill="Mod3"))+
+  scale_y_continuous(labels = percent_format())+
+  theme_bw(base_size = 15)+
+      labs(title = "Mod4 x Mod5")+
+  labs(title = str_c(bd_temp2," - ",bd_temp3),
+      fill="Versus")+
+      xlab("UF")+
+      ylab("Modelos")+
+  #scale_fill_manual(values=c("#32CD32","#FF8C00"))
+  scale_fill_manual(values = c("#FFA07A","#00BFFF"))
+
+plot_grid(b, ncol = 1, nrow = 1,rel_widths = c(1, 1))
+return (b)
+}
+graf_bar_vert_mod(bd_graf_disp_mod_percent,titulo_graf_disp[2],titulo_graf_disp_mod[2])
+
+```
 
 
 # Diversos {.tabset .tabset-fade}
@@ -1296,24 +1490,24 @@ mapa_br_eff(map_dea_2021_mod5,titulo_mapa_modelo[5],ano[1],titulo_intervalo_eff[
 ## Créditos - Participantes do Projeto Capacidade Produtiva:
 
 **PATROCINADORES DO PROJETO**\
-xx
+xxx
 
 **COORDENADORES DO PROJETO**\
 xxx
 
 **MEMBROS DO PROJETO**\
 Allan Batista Martins,\
-xx
+xxx
 
 ## Material de Apoio
 
--   Tabela de Cores HTML (nome, hexadecimal e RGB):
+-   Tabela de Cores HTML (nome, hexadecimal e RGB): (https://celke.com.br/artigo/tabela-de-cores-html-nome-hexadecimal-rgb)
 
--   Tutorial - Data Envelopment Analysis with deaR:
+-   Tutorial - Data Envelopment Analysis with deaR: (https://www.uv.es/dearshiny/Tutoriales_deaR/Tutorial_deaR_english.pdf)
 
 -   Tratamento de Outliers (Bacon) - R na Pesquisa Contábil: [Alessanderson Jacó de Carvalho](https://youtu.be/hfO5LLbRioY)
 
--   PLAYLIST - R na Pesquisa Contábil (Parte 1 ao 20):
+-   PLAYLIST - R na Pesquisa Contábil (Parte 1 ao 20): (https://www.youtube.com/playlist?list=PLF3Sjk1EY74ZcUWHE6ZDPHFRu9zp_20gD)
 
 -   Utilização da metodologia DEA (Data Envelopment Analysis) para avaliar o impacto das TIC sobre a produtividade na indústria da hospitalidade:
 
