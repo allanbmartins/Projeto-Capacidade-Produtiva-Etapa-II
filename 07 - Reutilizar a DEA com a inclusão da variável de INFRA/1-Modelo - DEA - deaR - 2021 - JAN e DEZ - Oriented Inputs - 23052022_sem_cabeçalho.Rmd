@@ -63,6 +63,9 @@ library(ggspatial) #Os dados espaciais mais o poder da estrutura ggplot2 signifi
 library(stringr)#pacote stringr, que possui uma sintaxe mais consistente, permitindo ao usuário manipular textos com muito mais facilidade.
 library(clipr) #Copiando tabelas do R para o Excel através da área de transferência
 
+library(qcc)#Quality Control Charts - Gráficos de controle de qualidade shewhart para dados contínuos, atributos e de contagem. Gráficos cusum e EWMA. Operando curvas características. Análise de capacidade de processo. Gráfico pareto e gráfico de causa e efeito. Gráficos de controle multivariados.
+
+
 ```
 
 ```{r configuracoes, warning = FALSE, message = FALSE, echo = FALSE, results='hide'}
@@ -353,10 +356,6 @@ return (b)
 mapa_br_eff(map_infra_2021,titulo_graf_infra[1][1],ano[1],titulo_intervalo_escala[1])
 
 ```
-
-
-
-
 
 
 
@@ -1312,25 +1311,19 @@ bd_graf_disp_mod_percent <- rename(bd_graf_disp_mod_percent, uf = bd_dea_final.u
 ```{r grafico disp 3b, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
 #Gráfico de dispersão - 1° Modelo 3 (com INFRA) x Modelo 2
  graf_disp_mod <- function(bd_temp,bd_temp2,bd_temp3,bd_temp4,bd_temp5){
-a <- ggplot ()+
-  geom_point(col="blue", fill = "black", size = 2,label = TRUE, show.legend = TRUE,aes(x= bd_temp$mod2_eff,y = bd_temp$mod3_eff))+
-  geom_text(
-    data = bd_temp,
-    aes(
-      x= mod2_eff,
-      y = mod3_eff,
+a <- ggplot(bd_temp, (aes(x= mod2_eff,y = mod3_eff)))+
+  geom_point()+
+  geom_smooth(method = "lm",colour = "red",size = 1,orientation = "x")+
+  geom_text(data = bd_temp,
+      aes(x= mod2_eff, y = mod3_eff,
       label = uf,
-      vjust = -0.5,
-      hjust = -0.5
-    ),
+      vjust = -0.5,hjust = -0.5),
     show.legend = FALSE,
     size = 3)+
   labs(title= str_c(bd_temp2," - ",bd_temp3))+
   scale_x_continuous(name = bd_temp5) +
   scale_y_continuous(name = bd_temp4) +
-  geom_abline(intercept = 0, slope = 1, color = "red")+
   theme_bw()
-
 plot_grid(a, ncol = 1, nrow = 1,rel_widths = c(1, 1))
 return (a)
 }
@@ -1363,39 +1356,40 @@ b <- ggplot(a, aes(x = uf))+
 plot_grid(b, ncol = 1, nrow = 1,rel_widths = c(1, 1))
 return (b)
 }
-graf_bar_vert_mod(bd_graf_disp_mod_percent,titulo_graf_disp[1],titulo_graf_disp_mod[1])
+graf_bar_vert_mod(bd_graf_disp_mod_percent,titulo_graf_disp[2],titulo_graf_disp_mod[1])
 
 ```
+
+
 
 ## Gráfico de dispersão - 2° Modelo 4 x Modelo 3 {.tabset .tabset-fade .tabset-pills}
 ```{r grafico disp 3d, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
 #Gráfico de dispersão - 2° Modelo 4 x Modelo 3
- graf_disp_mod <- function(bd_temp,bd_temp2,bd_temp3,bd_temp4,bd_temp5){
-a <- ggplot ()+
-  geom_point(col="blue", fill = "black", size = 2,label = TRUE, show.legend = TRUE,aes(x= bd_temp$mod3_eff,y = bd_temp$mod4_eff))+
-  geom_text(
-    data = bd_temp,
-    aes(
-      x= mod3_eff,
-      y = mod4_eff,
+graf_disp_mod <- function(bd_temp,bd_temp2,bd_temp3,bd_temp4,bd_temp5){
+a <- ggplot(bd_temp, (aes(x= mod3_eff,y = mod4_eff)))+
+  geom_point()+
+  geom_smooth(method = "lm",colour = "red",size = 1,orientation = "x")+
+  geom_text(data = bd_temp,
+    aes(x= mod3_eff, y = mod4_eff,
       label = uf,
-      vjust = -0.5,
-      hjust = -0.5
-    ),
+      vjust = -0.5, hjust = -0.5),
     show.legend = FALSE,
     size = 3)+
   labs(title= str_c(bd_temp2," - ",bd_temp3))+
   scale_x_continuous(name = bd_temp5) +
   scale_y_continuous(name = bd_temp4) +
-  geom_abline(intercept = 0, slope = 1, color = "red")+
   theme_bw()
-
 plot_grid(a, ncol = 1, nrow = 1,rel_widths = c(1, 1))
+
 return (a)
 }
 graf_disp_mod(bd_graf_disp_mod,titulo_graf_disp[1],titulo_graf_disp_mod[2],nome_modelos[4],nome_modelos[3])
 
+
 ```
+
+
+
 
 ## Gráfico de barra - 2° Modelo 4 x Modelo 3 {.tabset .tabset-fade .tabset-pills}
 ```{r grafico bar 3f, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
@@ -1426,30 +1420,26 @@ graf_bar_vert_mod(bd_graf_disp_mod_percent,titulo_graf_disp[2],titulo_graf_disp_
 ```
 
 
+
 ## Gráfico de dispersão - 3° Modelo 5 × Modelo 4 {.tabset .tabset-fade .tabset-pills}
 ```{r grafico disp 3g, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
 #Gráfico de dispersão - 3° Modelo 5 × Modelo 4
  graf_disp_mod <- function(bd_temp,bd_temp2,bd_temp3,bd_temp4,bd_temp5){
-a <- ggplot ()+
-  geom_point(col="blue", fill = "black", size = 2,label = TRUE, show.legend = TRUE,aes(x= bd_temp$mod4_eff,y = bd_temp$mod5_eff))+
-  geom_text(
-    data = bd_temp,
-    aes(
-      x= mod4_eff,
-      y = mod5_eff,
+a <- ggplot(bd_temp, (aes(x= mod4_eff,y = mod5_eff)))+
+  geom_point()+
+  geom_smooth(method = "lm",colour = "red",size = 1,orientation = "x")+
+  geom_text(data = bd_temp,
+    aes(x= mod4_eff, y = mod5_eff,
       label = uf,
-      vjust = -0.5,
-      hjust = -0.5
-    ),
+      vjust = -0.5, hjust = -0.5),
     show.legend = FALSE,
     size = 3)+
   labs(title= str_c(bd_temp2," - ",bd_temp3))+
   scale_x_continuous(name = bd_temp5) +
   scale_y_continuous(name = bd_temp4) +
-  geom_abline(intercept = 0, slope = 1, color = "red")+
   theme_bw()
-
 plot_grid(a, ncol = 1, nrow = 1,rel_widths = c(1, 1))
+
 return (a)
 }
 graf_disp_mod(bd_graf_disp_mod,titulo_graf_disp[1],titulo_graf_disp_mod[3],nome_modelos[5],nome_modelos[4])
@@ -1485,9 +1475,25 @@ graf_bar_vert_mod(bd_graf_disp_mod_percent,titulo_graf_disp[2],titulo_graf_disp_
 ```
 
 
+
+# BONUS -  Diagrama de Ishikawa - 
+A origem da ferramenta diagrama de Ishikawa da ferramenta diagrama de Ishikawa foi criada pelo engenheiro químico Kaoru Ishikawa, no ano de 1943. Seu sucesso na gestão da qualidade parte da motivação de Ishikawa ao criar a ferramenta. Seu projeto foi desenvolver uma ferramenta que fosse utilizável por qualquer pessoa, desde os colaboradores “chão de fábrica” até a diretoria.
+
+Assim, por ser uma ferramenta visual, o gráfico do diagrama de Ishikawa é muito utilizado para auxiliar na organização e no raciocínio da equipe. Dessa forma, com sua representação gráfica, ele auxilia a equipe a chegar nas causas-raiz que diminuem a produtividade da organização.
+```{r Diagrama de Ishikawa 1i3, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 10,echo=FALSE, results='hide'}
+#Criando um diagrama usando a função cause e effect - Diagrama de Ishikawa no R
+cause.and.effect(cause = list("Mão de Obra" = c("Falta de Treinamento","Alta Rotatividade \n de Força ADM","Força de trabalho \n envenhecendo"), Governo = c("Cortes orçamentários","Falta de priorização","Problemas politicos"),Medidas = c("Má utilização do sistema","Falta de utilização \n dos módulos SGI"), Médoto = c("Problemas de \n comunicação","Clareza no universo \n de atuação"),Ambiente = c("Fatores Estruturantes", "Pandemia", "Crises Econômicas"), Máquina = c("Falta de estrutura", "Sistemas desatualizados", "Falta de um Plano \n de Modernização")),
+                 effect =c("Baixa produtividade na RBMLQ-I"),
+                 title = "Diagrama de causa e efeito",
+                 cex = c(1,0.7,1))#,
+                 #font = C(3,1,2))
+
+```
+
+
 # Diversos {.tabset .tabset-fade}
 
-## Créditos - Participantes do Projeto Capacidade Produtiva:
+## Créditos - Participantes do Projeto Capacidade Produtiva na RBMLQ-I:
 
 **PATROCINADORES DO PROJETO**\
 xxx
@@ -1500,6 +1506,11 @@ Allan Batista Martins,\
 xxx
 
 ## Material de Apoio
+
+
+- Diagrama de Ishikawa: (https://www.siteware.com.br/metodologias/diagrama-de-ishikawa/)
+
+-   Gráfico de dispersão - Smoothed conditional means - ggplot2: (https://ggplot2.tidyverse.org/reference/geom_smooth.html)
 
 -   Tabela de Cores HTML (nome, hexadecimal e RGB): (https://celke.com.br/artigo/tabela-de-cores-html-nome-hexadecimal-rgb)
 

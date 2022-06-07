@@ -63,6 +63,8 @@ library(ggspatial) #Os dados espaciais mais o poder da estrutura ggplot2 signifi
 library(stringr)#pacote stringr, que possui uma sintaxe mais consistente, permitindo ao usuário manipular textos com muito mais facilidade.
 library(clipr) #Copiando tabelas do R para o Excel através da área de transferência
 
+library(qcc)#Quality Control Charts - Gráficos de controle de qualidade shewhart para dados contínuos, atributos e de contagem. Gráficos cusum e EWMA. Operando curvas características. Análise de capacidade de processo. Gráfico pareto e gráfico de causa e efeito. Gráficos de controle multivariados.
+
 ```
 
 ```{r configuracoes, warning = FALSE, message = FALSE, echo = FALSE, results='hide'}
@@ -96,7 +98,7 @@ titulo_mapa_modelo <- c("Mapa Brasil do Percentual de aumento na capacidade de p
 
 ```{r var Leitura banco de dedos completo, warning = FALSE, message = FALSE, echo = FALSE, results='hide'}
 #Importando
-setwd("D:/01_Digea/02_Proj/02_Proj_CP/03 Fase II/01 DEA/01 Modelo 02/05 DEA")
+setwd("D:/01_Digea/02_Proj/02_Proj_CP/02 Etapa-II/07 - Reutilizar a DEA com a inclusão da variável de INFRA")
 
 bd_m_dea_12_2021 <- read_excel("bd_zy_zf_zs_2021_trab_v5_sem_ap.xlsx", sheet=1, col_names=TRUE)
 #bd_m_dea_12_2021 <- read_excel(file.choose(), sheet=1, col_names=TRUE)
@@ -353,14 +355,14 @@ mapa_br_eff(map_infra_2021,titulo_graf_infra[1][1],ano[1],titulo_intervalo_escal
 
 # Etapa II - Geração Modelos de Análise Envoltória de Dados (DEA) - 2021 JAN e DEZ {.tabset .tabset-fade .tabset-pills}
 
-![MODELOS DE EFICIÊNCIA (DEA)](D:/01_Digea/02_Proj/02_Proj_CP/03%20Fase%20II/01%20DEA/01%20Modelo%2002/05%20DEA/1%20-%20Modelos%20de%20Efici%C3%AAncia%20(DEA).png)
+![MODELOS DE EFICIÊNCIA (DEA)](D:/01_Digea/02_Proj/02_Proj_CP/02 Etapa-II/07 - Reutilizar a DEA com a inclusão da variável de INFRA/1%20-%20Modelos%20de%20Efici%C3%AAncia%20(DEA).png)
 
 
 
 ## **`r nome_modelos[1]`** {.tabset .tabset-fade .tabset-pills}
 ```{r mod1 Banco  2a, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
 #Importando dados modelo 1
-setwd("D:/01_Digea/02_Proj/02_Proj_CP/03 Fase II/01 DEA/01 Modelo 02/05 DEA/")
+setwd("D:/01_Digea/02_Proj/02_Proj_CP/02 Etapa-II/07 - Reutilizar a DEA com a inclusão da variável de INFRA")
 
 bd_m_dea_12_2021 <- read_excel("bd_m_dea_12_2021.xlsx", sheet=1, col_names=TRUE)
 bd_dea_mod1 <- bd_m_dea_12_2021
@@ -731,7 +733,7 @@ mapa_br_eff(map_dea_2021_mod2,titulo_mapa_modelo[2],ano[1],titulo_intervalo_eff[
 ## **`r nome_modelos[3]`** {.tabset .tabset-fade .tabset-pills}
 ```{r mod3 Banco   2a, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
 #Importando dados modelo 1
-#setwd("D:/01_Digea/02_Proj/02_Proj_CP/03 Fase II/01 DEA/01 Modelo 02/05 DEA/")
+#setwd("D:/01_Digea/02_Proj/02_Proj_CP/02 Etapa-II/07 - Reutilizar a DEA com a inclusão da variável de INFRA")
 
 #bd_m_dea_12_2021 <- read_excel("bd_m_dea_12_2021.xlsx", sheet=1, col_names=TRUE)
 bd_dea_mod3 <- select(bd_dea_final,uf,zf_ftp,zf_custeio_t,zs_infra,zy_ubp_1000_hab)
@@ -920,7 +922,7 @@ mapa_br_eff(map_dea_2021_mod3,titulo_mapa_modelo[3],ano[1],titulo_intervalo_eff[
 ## **`r nome_modelos[4]`** {.tabset .tabset-fade .tabset-pills}
 ```{r mod4 Banco   2a, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
 #Importando dados modelo 1
-#setwd("D:/01_Digea/02_Proj/02_Proj_CP/03 Fase II/01 DEA/01 Modelo 02/05 DEA/")
+#setwd("D:/01_Digea/02_Proj/02_Proj_CP/02 Etapa-II/07 - Reutilizar a DEA com a inclusão da variável de INFRA")
 
 #bd_m_dea_12_2021 <- read_excel("bd_m_dea_12_2021.xlsx", sheet=1, col_names=TRUE)
 bd_dea_mod4 <- select(bd_dea_final,uf,zf_ftp,zf_custeio_t,zs_infra,zy_ubp_1000_hab,rec_gerad_2021)
@@ -1111,7 +1113,7 @@ mapa_br_eff(map_dea_2021_mod4,titulo_mapa_modelo[4],ano[1],titulo_intervalo_eff[
 ## **`r nome_modelos[5]`** {.tabset .tabset-fade .tabset-pills}
 ```{r mod5 Banco   2a, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
 #Importando dados modelo 1
-#setwd("D:/01_Digea/02_Proj/02_Proj_CP/03 Fase II/01 DEA/01 Modelo 02/05 DEA/")
+#setwd("D:/01_Digea/02_Proj/02_Proj_CP/02 Etapa-II/07 - Reutilizar a DEA com a inclusão da variável de INFRA")
 
 #bd_m_dea_12_2021 <- read_excel("bd_m_dea_12_2021.xlsx", sheet=1, col_names=TRUE)
 bd_dea_mod5 <- select(bd_dea_final,uf,zf_ftp,zf_custeio_t,zs_infra,zy_ubp_1000_hab,rec_gerad_2021,zy_custo_ubp_n)
@@ -1296,7 +1298,19 @@ mapa_br_eff(map_dea_2021_mod5,titulo_mapa_modelo[5],ano[1],titulo_intervalo_eff[
 
 
 
+# BONUS -  Diagrama de Ishikawa - 
+A origem da ferramenta diagrama de Ishikawa da ferramenta diagrama de Ishikawa foi criada pelo engenheiro químico Kaoru Ishikawa, no ano de 1943. Seu sucesso na gestão da qualidade parte da motivação de Ishikawa ao criar a ferramenta. Seu projeto foi desenvolver uma ferramenta que fosse utilizável por qualquer pessoa, desde os colaboradores “chão de fábrica” até a diretoria.
 
+Assim, por ser uma ferramenta visual, o gráfico do diagrama de Ishikawa é muito utilizado para auxiliar na organização e no raciocínio da equipe. Dessa forma, com sua representação gráfica, ele auxilia a equipe a chegar nas causas-raiz que diminuem a produtividade da organização.
+```{r Diagrama de Ishikawa 1i3, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 10,echo=FALSE, results='hide'}
+#Criando um diagrama usando a função cause e effect - Diagrama de Ishikawa no R
+cause.and.effect(cause = list("Mão de Obra" = c("Falta de Treinamento","Alta Rotatividade \n de Força ADM","Força de trabalho \n envenhecendo"), Governo = c("Cortes orçamentários","Falta de priorização","Problemas politicos"),Medidas = c("Má utilização do sistema","Falta de utilização \n dos módulos SGI"), Médoto = c("Problemas de \n comunicação","Clareza no universo \n de atuação"),Ambiente = c("Fatores Estruturantes", "Pandemia", "Crises Econômicas"), Máquina = c("Falta de estrutura", "Sistemas desatualizados", "Falta de um Plano \n de Modernização")),
+                 effect =c("Baixa produtividade na RBMLQ-I"),
+                 title = "Diagrama de causa e efeito",
+                 cex = c(1,0.7,1))#,
+                 #font = C(3,1,2))
+
+```
 
 
 # Diversos {.tabset .tabset-fade}
@@ -1304,14 +1318,14 @@ mapa_br_eff(map_dea_2021_mod5,titulo_mapa_modelo[5],ano[1],titulo_intervalo_eff[
 ## Créditos - Participantes do Projeto Capacidade Produtiva:
 
 **PATROCINADORES DO PROJETO**\
-xx
+xxx
 
 **COORDENADORES DO PROJETO**\
-xx
+xxx
 
 **MEMBROS DO PROJETO**\
 Allan Batista Martins,\
-xx
+xxx
 
 ## Material de Apoio
 
