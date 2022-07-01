@@ -1,0 +1,788 @@
+---
+title: "Projeto de Capacidade Produtiva - Fase II"
+subtitle: FALSE
+author: "Allan B. Martins"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+    html_document:
+      highlight: espresso
+      includes:
+        in_header: cabecalhofinal_branco.html
+      theme: flatly
+      number_sections: TRUE
+      toc: TRUE
+      toc_float:
+        collapsed: TRUE
+        smooth_scroll: TRUE
+---
+
+```{r Pacotes, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+library(dplyr)#pacote mais útil para realizar transformação de dados.
+library(tidyverse)#pacote guarda-chuva que consolida uma série de ferramentas que fazem parte o ciclo da ciência de dados.
+library(cluster)# Métodos de análise de cluster.
+library(factoextra)#Fornece algumas funções fáceis de usar para extrair e visualizar a saída de análises de dados multivariadas.
+library(readxl)#O pacote readxl facilita a obtenção de dados do Excel e para o R.
+library(rstatix)#Provides a simple and intuitive pipe-friendly framework, for performing basic   statistical tests.
+# library(emmeans)# Pacote para obter médias marginais estimadas (EMMs) para muitos modelos lineares, lineares generalizados e mistos.
+library(ggplot2)#Um sistema para a criação 'declarativa' de gráficos, baseado na "Gramática dos Gráficos".
+library(knitr)#Fornece uma ferramenta de uso geral para geração de relatórios dinâmicos em R usando técnicas de programação literária.
+library(kableExtra)#Construa tabelas complexas em HTML ou 'LaTeX' usando 'kable ()' de 'knitr' e a sintaxe de tubulação de 'magrittr'.
+library(htmltools)#Ferramentas para geração e saída de HTML.
+# library(zoo)#Uma classe S3 com métodos para observações indexadas totalmente ordenadas.
+library(lmtest)#Uma coleção de testes, conjuntos de dados e exemplos para verificação diagnóstica em modelos de regressão linear.
+library(rmarkdown)#Converta documentos R Markdown em uma variedade de formatos.
+library(cowplot)#Fornece vários recursos que ajudam a criar figuras de qualidade de publicação com 'ggplot2'.
+library(SciViews) #Funções para instalar adições de SciViews ao R e mais ferramentas.
+library(forecast) #Métodos e ferramentas para exibir e analisar previsões de séries temporais univariadas,
+#library(car) #Conflito
+library(data.table) #data.table fornece uma versão de alto desempenho dos R's base com sintaxe e aprimoramentos de recursos para facilitar o uso, conveniência e velocidade de programação.data.frame
+library(corrplot) #O corrplot do pacote R fornece uma ferramenta exploratória visual na matriz de correlação que suporta reordenamento variável automático para ajudar a detectar padrões ocultos entre variáveis.
+library(reshape2) #reshape2 is superseded: only changes necessary to keep it on CRAN will be made. We recommend using tidyr instead.
+library(openxlsx) # Este pacote R simplifica a criação de arquivos fornecendo uma interface de alto nível para escrever, estilizar e editar planilhas. Através do uso do Rcpp, os tempos de leitura/gravação são comparáveis aos pacotes xlsx
+library(scales) #O uso mais comum do pacote de escalas é personalizar para controlar a aparência de rótulos de eixo e legenda.
+library(tibble) #Um tibble, ou , é uma reimaginação moderna do data.frame, mantendo que o tempo provou ser eficaz, e jogando fora o que não é.
+
+# ctrl + shift + c
+
+library(outliers) # Pacote para tratamento de outliers
+library(deaR) #Conjunto de funções para Análise de Envoltório de Dados. Ele executa modelos DEA clássicos e difusos.
+library (robustX) # Se esse pacote não estiver instalado, instalar utilizando o comando install.packages("robustX")
+#library(Benchmarking) #Métodos para análise de fronteiras, Análise de Envoltório de Dados (DEA), sob diferentes premissas tecnológicas (fdh, vrs, drs, crs, irs, add/frh e fdh+), e utilizando diferentes medidas de eficiência (baseada em entrada, baseada em saída, gráfico hiperbólico, aditivo, super e eficiência direcional).
+
+library(formattable) #O pacote “formatável” fornece métodos para criar vetores formatáveis e objetos de quadro de dados.
+#library(plyr) #O pacote plyr é um conjunto de ferramentas limpas e consistentes que implementam o padrão split-apply-combine em R. Este é um padrão extremamente comum na análise de dados: você resolve um problema complexo dividindo-o em pequenos pedaços, fazendo algo com cada peça e, em seguida, combinando os resultados novamente.
+
+#library(sqldf) #A função sqldf() é normalmente aprovada um único argumento que é uma instrução de seleção SQL onde os nomes de tabela são nomes comuns de quadros de dados R. sqldf() configura de forma transparente um banco de dados, importa os quadros de dados para esse banco de dados, executa a seleção SQL ou outra declaração e retorna o resultado usando uma heurística para determinar qual classe atribuir a cada coluna do quadro de dados retornado. As funções sqldf() ou leitura.csv.sql() também podem ser usadas para ler arquivos filtrados em R, mesmo que os arquivos originais sejam maiores do que o próprio R pode lidar. Backends 'RSQLite', 'RH2', 'RMySQL' e 'RPostgreSQL' são suportados.
+#library(scales) #pacote de escalas
+# Instalando o 'geobr'
+#remotes::install_github("ipeaGIT/geobr", subdir = "r-package")
+library(geobr) # Necessárias para os dados dos mapas
+library(ggspatial) #Os dados espaciais mais o poder da estrutura ggplot2 significam um mapeamento mais fácil quando os dados de entrada já estão na forma de objetos espaciais. Fonte de pesquisa:(https://cran.r-project.org/web/packages/ggspatial/index.html)
+#library(ggimage) #Suporta arquivos de imagem e objetos gráficos a serem visualizados no sistema gráfico 'ggplot2'.
+#library(concatenate) #Concatenar strings (conflito ggplot2)
+library(stringr)#pacote stringr, que possui uma sintaxe mais consistente, permitindo ao usuário manipular textos com muito mais facilidade.
+library(clipr) #Copiando tabelas do R para o Excel através da área de transferência
+
+library(qcc)#Quality Control Charts - Gráficos de controle de qualidade shewhart para dados contínuos, atributos e de contagem. Gráficos cusum e EWMA. Operando curvas características. Análise de capacidade de processo. Gráfico pareto e gráfico de causa e efeito. Gráficos de controle multivariados.
+
+library(descr) #Estatísticas descritivas para R
+#library(car) #Conflito com dplyr
+#library(carData)
+library(sciplot) #Funções de representação gráfica científica para experimentos fatoriais
+
+library(GGally) #estende o ggplot2 adicionando várias funções para reduzir a complexidade de combinar geoms com dados transformados. Algumas dessas funções incluem uma matriz de gráfico de pares, uma matriz de gráfico de dispersão, um gráfico de coordenadas paralelas, um gráfico de sobrevivência e várias funções para traçar redes.
+library(DT) #Este pacote fornece uma função datatable() para exibir dados R através da biblioteca DataTables (N.B. não deve ser confundido com o pacote data.table).
+
+#library(relaimpo) #importância relativa dos regressores
+library(hrbrthemes) #Este é um pacote muito focado que fornece temas centrados em tipografia e componentes de tema para ggplot2. É um extrato/riff de hrbrmisc criado por solicitação.
+library(corrr) #é um pacote para explorar correlações em R. Ele se concentra em criar e trabalhar com data frames de correlações (em vez de matrizes) que podem ser facilmente exploradas por meio de funções corrr ou aproveitando ferramentas como as do arrumaverse. Isso, juntamente com as funções corrr primárias, é representado abaixo:
+library(broom) #resume as principais informações sobre modelos em tibble()s organizados. broom fornece três verbos para facilitar a interação com objetos de modelo:
+library(qgraph) #Métodos de plotagem de gráficos, visualização de dados psicométricos e estimativa de modelos gráficos
+library(lubridate) #Pode ser frustrante trabalhar com dados de data e hora no R. Os comandos R para data e hora geralmente não são intuitivos e mudam dependendo do tipo de objeto de data e hora que está sendo usado. Além disso, os métodos que usamos com data e hora devem ser robustos para fusos horários, dias bissextos, horário de verão e outras peculiaridades relacionadas ao horário, e o R não possui esses recursos em algumas situações. O Lubridate torna mais fácil fazer as coisas que R faz com datas e horas e possível fazer as coisas que R não faz.
+library(plotly) #Qualquer gráfico feito com o pacote plotly R é alimentado pela biblioteca JavaScript plotly.js. A função plot_ly() fornece uma interface 'direta' para plotly.js com algumas abstrações adicionais para ajudar a reduzir a digitação. Essas abstrações, inspiradas na Grammar of Graphics e no ggplot2, tornam muito mais rápido a iteração de um gráfico para outro, facilitando a descoberta de recursos interessantes nos dados (Wilkinson 2005; Wickham 2009). Para demonstrar, usaremos plot_ly() para explorar o conjunto de dados de diamantes do ggplot2 e aprender um pouco como plotly e plotly.js funcionam ao longo do caminho.
+library(latticeExtra) #latticeExtra é um pacote R (ou seja, um pacote para o ambiente de computação estatística R), fornecendo funções para gerar gráficos estatísticos. Ele estende o framework Lattice (pacote lattice), que é uma implementação de gráficos Trellis em R.
+#library(varImp) #Computes the variable importance for arbitrary measures from the 'measures' package.
+library(performance) #O objetivo principal do pacote de desempenho é preencher essa lacuna e fornecer utilidades para índices de computação de qualidade do modelo e bondade do ajuste. Estas incluem medidas como r-quadrado (R2), erro quadrado médio raiz (RMSE) ou coeficiente de correlação intraclasse (ICC), mas também funções para verificar modelos (mistos) para superdispersão, inflação zero, convergência ou singularidade.
+library(pdftools) #Utilities based on libpoppler for extracting text, fonts, attachments and metadata from a pdf file. (https://github.com/ropensci/pdftools)
+library(base64enc) #base64encode encodes a data into base64 encoding. The source can be a file, binary connection or a raw vector.
+library(hrbrthemes) #Additional Themes and Theme Components for ‘ggplot2’
+library(ggrepel) #ggrepel fornece geoms para ggplot2 para repelir rótulos de texto sobrepostos: Os rótulos de texto se afastam um do outro, longe dos pontos de dados e longe das bordas da área de plotagem.
+
+```
+
+```{r configuracoes, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#remove(list=ls())
+
+#Define qtd de casas decimais
+options(scipen=999)
+options(digits = 4)
+
+#Defini padrões para textos dos títulos
+ano <- ("2012 a 2021")
+periodo <- ("JAN A DEZ")
+tipo_modelo <- ("Oriented Inputs")
+titulo_original <- c("Tabela de dados completa original", "TABELA DE DADOS COMPLETA ORIGINAL")
+descricao <- ("DEA - Série histórica'")
+versao <- ("v1")
+
+moelo <- c("Modelo", "MODELO")
+nome_modelos <- c("DEA - Modelo 1 (INFRA)","DEA - Modelo 2 (INFRA e RECEITA GERADA)")
+titulo_tab_mod <-c("Tabela de dados do DEA - Modelo 1 - (INFRA)","Tabela de dados do DEA - Modelo 2 - (INFRA e RECEITA GERADA)", "TABELA DE DADOS DEA - MODELO 1 - (INFRA)","TABELA DE DADOS DEA - MODELO 2 - (INFRA e RECEITA GERADA)")
+titulo_tab_mod_eff <-c("Tabela de percentuais DEA - modelo 1 - (INFRA)","Tabela de percentuais DEA - modelo 2 - (INFRA E RECEITA GERADA)", "TABELA DE PERCENTUAIS DEA - MODELO 1 - (INFRA)", "TABELA DE PERCENTUAIS DEA - MODELO 2 - (INFRA E RECEITA GERADA)")
+
+nome_estados <- c("AC","AL","AM","AP","BA","CE","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO")
+nome_estados_c <- c("C1-AC","C1-AL","C1-AP","C1-PB","C1-PI","C1-RN","C1-RO","C1-RR","C1-SE","C1-TO","C2-AM","C2-CE","C2-ES","C2-GO","C2-MA","C2-MS","C2-PA","C2-PE","C3-BA","C3-MG","C3-MT","C3-PR","C3-RJ","C3-RS","C3-SC","C3-SP")
+
+titulo_graf_linha <- c("DEA - Modelo 1 (INFRA) X Modelo 2 (INFRA e RECEITA GERADA)","DEA - MODELO 1 (INFRA) X MODELO 2 (INFRA e RECEITA GERADA)")
+  
+titulo_intervalo_escala <- ("Escala")
+
+descri_modelos <- c( "x = FT, CUSTEIO, INFRA e y = Ubp_1000_hab","x = FT, CUSTEIO, INFRA e y = Ubp_1000_hab, REC_gerad")
+titulo_intervalo_eff <- c("Intervalo de Eficiência")
+titulo_graf_eff <- c("Percentual de aproximação com a fronteira de eficiência 100% - Modelo 1","Percentual de aproximação com a fronteira de eficiência 100% - Modelo 2")
+
+titulo_tab_conglomerado_mod1 <- c("Tabela do comglomerado 1 do DEA - Modelo 1 - (INFRA)", "Tabela do comglomerado 2 do DEA - Modelo 1 - (INFRA)", "Tabela do comglomerado 3 do DEA - Modelo 1 - (INFRA)", "TABELA DO CONGLOMERADO 1 DO DEA - MODELO 1 - (INFRA)", "TABELA DO CONGLOMERADO 2 DO DEA - MODELO 1 - (INFRA)", "TABELA DO CONGLOMERADO 3 DO DEA - MODELO 1 - (INFRA)")
+titulo_tab_conglomerado_mod2 <- c("Tabela do comglomerado 1 do DEA - Modelo 2 - (INFRA e RECEITA GERADA)", "Tabela do comglomerado 2 do DEA - Modelo 2 - (INFRA e RECEITA GERADA)", "Tabela do comglomerado 3 do DEA - Modelo 2 - (INFRA e RECEITA GERADA)", "TABELA DO CONGLOMERADO 1 DO DEA - MODELO 2 - (INFRA E RECEITA GERADA)", "TABELA DO CONGLOMERADO 2 DO DEA - MODELO 2 - (INFRA E RECEITA GERADA)", "TABELA DO CONGLOMERADO 3 DO DEA - MODELO 2 - (INFRA E RECEITA GERADA)")
+```
+
+```{r var Leitura banco de dedos completo, warning = FALSE, message = FALSE, echo = FALSE, results='hide'}
+#Importando
+setwd("D:/01_Digea/02_Proj/02_Proj_CP/02 Etapa-II/09 - Utilizar a DEA para série histórica de eficiência dos OD")
+
+bd_dea_2012_2021 <- read_excel("modelo_dea_2012_2022_v1.xlsx", sheet=3, col_names=TRUE)
+#bd_m_dea_12_2021 <- read_excel(file.choose(), sheet=1, col_names=TRUE)
+
+```
+# Etapa I - Estruturação do banco de dados da série histórica de 2012 a 2021 para o modelo DEA orientado a entradas {.tabset .tabset-fade .tabset-pills}
+
+## Introdução.
+
+O objetivo desse trabalho foi montar 02 modelos (**`r nome_modelos[1]`** e **`r nome_modelos[2]`**) através da técnica de **Análise Envoltória de Dados (DEA)** para mensurar a eficiência de cada OD ao longo da série histórica de 2012 até 2021 (Realizado), por meio da seleção de algumas variáveis independentes explicativas **(Xn = "zf_ft_tot, "zf_port_in", "zf_infra")** e variáveis de resultado **(Yn = zy_ubp_100_hab e zy_rec_gerada)**, a entrega dos resultados será atráves de tabelas e gráficos comparativos dos **modelos (1 e 2)**.
+
+
+### Tabela de dados completa Original
+```{r Tabela de dados completa Original 1a, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+## Tabela de dados completa Original
+#Visualiza o banco em forma de tabela dinâmica
+bd_tabela_dados <- function(bd_temp,bd_temp2){
+
+datatable(bd_temp, 
+          caption = bd_temp2,
+          style = "auto", width = NULL, height = NULL, elementId = NULL,
+          extensions = 'Buttons', options = list(dom = 'Bfrtip',
+    buttons = c('copy', 'csv', 'excel', 'pdf', 'print'))) %>%
+    formatRound("zf_ft_tot",2) %>%
+    formatRound("zf_aport_in",2) %>%
+    formatRound("zs_infra",2) %>%
+    formatRound("zy_ubp_1000_hab",2) %>%
+    formatRound("zy_rec_gerada",2)
+ }
+bd_tabela_dados(bd_dea_2012_2021,titulo_original[2])
+
+```
+
+
+# Técnica utilizada para criação dos Modelos de Análise Envoltória de Dados (DEA) **`r ano`** - **`r periodo`** - **`r descricao`** - Tipo modelo do **`r tipo_modelo`** - (**`r versao`**)
+
+
+## Contextualização
+
+A Metodologia utilizada neste modelo e a **"DEA (Data Envelopment Analysis)"**
+
+História do DEA
+O primeiro modelo DEA foi proposto por Charnes, Coooper e Rhodes (1978) que, a seu tributo, se designou DEA -- CCR, tinha orientação ao input e pressupunha a existência de retornos constantes de escala (CRS). Esta metodologia procura estabelecer quais indivíduos, de uma dada amostra, determinam a superfície envolvente ou fronteira de produção eficiente.
+
+A metodologia DEA é aplicada na avaliação unitária de unidades homogéneas ou empresas. A unidade em avaliação é normalmente denominada como uma unidade de tomada de decisão (DMU, Data Managment Unit) que converte inputs em outputs, facto pelo qual em qualquer estudo a sua identificação é um aspeto difícil e crucial. Segundo DEA, o desempenho de uma empresa é avaliado em relação a uma fronteira eficiente, que é construída através da combinação linear das empresas existentes. O procedimento baseia-se numa formulação matemática sofisticada.
+
+Usaremos a **função "deaR"** desse pacote deste mesmo e seus padrões (default), com seu conjunto de funções para Análise de Envoltório de Dados. Ele executa modelos DEA clássicos e difusos
+
+
+### Sobre a orientação utilizada no **Modelo "O-I"**
+
+Modelo O-E ou O-I
+
+O modelo orientado a entrada (input)  minimiza as entradas (insumos) para que um nível desejado de saída seja alcançado.
+
+No contexto da Rede, aqueles **OD** ditos entre a **faixa de eficientes (70% a 100%)** estariam produzindo resultados coerentes com os insumos que possuem. Já os não eficientes poderiam utilizar menos **recursos (FT, Custeio...)** para produzir aquele mesmo tanto.
+
+Tanto o modelo orientado a **entradas(input)** quanto a **saídas(output)** buscam maximizar as saídas, minimizar as entradas e, assim, maximizar a eficiência.
+
+
+
+# Etapa II - Geração dos Modelos (1 e 2) de Análise Envoltória de Dados (DEA) - 2012 a 2021 JAN e DEZ {.tabset .tabset-fade .tabset-pills}
+
+![](D:/01_Digea/02_Proj/02_Proj_CP/02 Etapa-II/09 - Utilizar a DEA para série histórica de eficiência dos OD/01_modelo_dea.png)
+
+**CLIQUE NO RESPECTIVO MODELO PARA VER TABELAS FONTES E TABELA COM OS RESULTADOS**
+
+## **`r nome_modelos[1]`**
+```{r mod1 Banco  1b, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Importando dados modelo 1
+#bd_dea_mod1 <- bd_dea_2012_2021
+#bd_dea_mod1 <- select(bd_dea_2012_2021, uf, ano, cod_cluster , zf_ft_tot, zf_aport_in, zs_infra, zy_ubp_1000_hab)
+
+```
+
+### Tabela de dados modelo 1
+```{r Tabela de dados mod1 2b, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+## Tabela de dados completa Original
+#Visualiza o banco em forma de tabela dinâmica
+bd_tabela_mod1 <- function(bd_temp,bd_temp2){
+
+datatable(bd_temp, 
+          caption = bd_temp2,
+          style = "auto", width = NULL, height = NULL, elementId = NULL,
+          extensions = 'Buttons', options = list(dom = 'Bfrtip',
+    buttons = c('copy', 'csv', 'excel', 'pdf', 'print'))) %>%
+    formatRound("zf_ft_tot",2) %>%
+    formatRound("zf_aport_in",2) %>%
+    formatRound("zs_infra",2) %>%
+    formatRound("zy_ubp_1000_hab",2) 
+ }
+bd_tabela_mod1((select(bd_dea_2012_2021, uf, cod_cluster, zf_ft_tot, zf_aport_in, zs_infra, zy_ubp_1000_hab)),titulo_tab_mod[3])
+
+```
+
+```{r mod1 Data Envelopment Analysis: R deaR 5b, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#limpa espaço de trabalho
+#remove(list=ls())
+
+#### Cálculo de eficiência do Modelo 1 - x = FT, CUSTEIO e y = UBP total/ 1000 - 2012 a 2021
+
+i <- (0) #Reinicializar variável de incremento.
+
+ano_i <- (2012) #Ano inicial do range.
+ano_f <- (2021) #Ano final do range.
+
+temp <- (0) #Reinicializar variável temporária.
+
+#Variável para rownames
+uf <- bd_dea_2012_2021 %>% filter(bd_dea_2012_2021$ano==2012) %>% select(uf, cod_cluster)
+dea_mod1_matriz_2012_2021 <- uf
+dea_mod1_matriz_2012_2021$mod <- "Modelo_1"
+
+
+#Filtrar em loop somente os registro pelos exercícios , colunas de UF, força de trabalho e custeio total.
+for (i in (ano_i:ano_f)){
+
+  temp <- (0)
+  temp2 <- (0)
+  ano_cont <- c("2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021")
+    temp <- bd_dea_2012_2021 %>% filter(bd_dea_2012_2021$ano==i) %>% select(uf, zf_ft_tot, zf_aport_in, zs_infra, zy_ubp_1000_hab)
+    
+    #Create a "read_data" object 
+    temp <- read_data(temp, dmus = 1, ni = 3, no = 1)
+    
+    #Solve the 2 stage DEA model "oi" ou "oo"  / "vrs" ou "crs" no = 1)
+    temp <- model_basic(temp,         
+                 orientation = c("io"),
+                 rts = c("crs"))
+    
+    #recuperar valores do eff do DEA
+    temp2 <- data.frame(efficiencies(temp))
+    
+    
+    #Transformar valor de eficiencia em %, ordenar decrescente e e cria fator para as UF
+    temp2 <- rename(temp2, eff = efficiencies.temp.) #Renomeia coluna eff
+    temp2$per100 <- percent(temp2$eff,1) #Formato percentual com o método percent() neste pacote é usado para representar os vetores numéricos no formato de porcentagem.
+    
+    
+    #Recupera nome das UF do rownames
+    temp2$uf <- rownames(temp2,do.NULL = TRUE, prefix = "row")
+    
+    #Recupera nome do cluster
+    temp2$cod_cluster <- uf$cod_cluster
+    
+    #Criar coluna de condicional de eficiencia com faixa de tolerancia "Abaixo de 50%", "Média entre 70% e 50%" e "Ideal acima de 70%"
+    temp2 <- temp2 %>% 
+    mutate(eficiencia = case_when(eff < 0.4999 ~ "C - Baixo - menos de 50%",
+                                 (eff > 0.5000) & (eff < 0.7001) ~ "B - Médio - entre 70% a 50%",
+                                 eff > 0.7000 ~ "A - Eficiente - acima de 70%"))
+    
+     #Recupera nome das UF do rownames
+     #temp2 %>% inner_join(uf)
+    
+     #temp2 <- column_to_rownames(temp, var = "uf")
+   
+     #Criar ordenação por fator
+    #temp2$uf <- factor(as.character(temp2$uf), levels = temp2$uf[order(temp2$per100)])
+    
+    #Cria dataframe por ano 
+     temp2$ano <- i
+     assign(paste0("dea_data_mod1_final_", i), temp2 )
+    
+    
+    #cria matriz de eficiencia da série histórica 2012 a 2021
+     dea_mod1_matriz_2012_2021[paste0(i)] <- temp2$per100
+    
+}
+
+    eff_mod1 <- rbind(dea_data_mod1_final_2012, dea_data_mod1_final_2013, dea_data_mod1_final_2014, dea_data_mod1_final_2015, dea_data_mod1_final_2016, dea_data_mod1_final_2017, dea_data_mod1_final_2018, dea_data_mod1_final_2019, dea_data_mod1_final_2020, dea_data_mod1_final_2021)
+
+
+    dea_eff_2012_2021_mod1_c1 <- eff_mod1 %>% filter(cod_cluster == 1) %>% select(uf, ano, cod_cluster, eff, per100, eficiencia)
+    dea_eff_2012_2021_mod1_c2 <- eff_mod1 %>% filter(cod_cluster == 2) %>% select(uf, ano, cod_cluster, eff, per100, eficiencia)
+    dea_eff_2012_2021_mod1_c3 <- eff_mod1 %>% filter(cod_cluster == 3) %>% select(uf, ano, cod_cluster, eff, per100, eficiencia)
+
+#Estimating Efficiency scores
+# efficiencies(bd_dea_mod1_data_calc)
+# 
+# eff <- efficiencies(bd_dea_mod1_data_calc)
+# 1/eff
+
+#summary(modelo_basico_1)
+
+```
+
+### Tabela de percentuais DEA modelo 1
+```{r Tabela de dados mod1 6b, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+## Tabela de dados completa Original
+#Visualiza o banco em forma de tabela dinâmica
+bd_tabela_mod1 <- function(bd_temp,bd_temp2){
+
+datatable(bd_temp, 
+          caption = paste0(bd_temp2, i),
+          style = "auto", width = NULL, height = NULL, elementId = NULL,
+          extensions = 'Buttons', options = list(dom = 'Bfrtip',
+    buttons = c('copy', 'csv', 'excel', 'pdf', 'print'))) %>%
+    formatPercentage("2012",2) %>%
+    formatPercentage("2013",2) %>%
+    formatPercentage("2014",2) %>%
+    formatPercentage("2015",2) %>%
+    formatPercentage("2016",2) %>%
+    formatPercentage("2017",2) %>%
+    formatPercentage("2018",2) %>%
+    formatPercentage("2019",2) %>%
+    formatPercentage("2020",2) %>%
+    formatPercentage("2021",2)
+
+}
+bd_tabela_mod1(dea_mod1_matriz_2012_2021,titulo_tab_mod_eff[1])
+
+```
+
+
+```{r Tabela de dados mod1 6b2, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+## Tabela de percentuais DEA modelo 1 dos conglomerados (1, 2 e 3)
+#Visualiza o banco em forma de tabela dinâmica
+bd_tabela_mod_conglomerados <- function(bd_temp,bd_temp2){
+
+datatable(bd_temp, 
+          caption = paste0(bd_temp2, i),
+          style = "auto", width = NULL, height = NULL, elementId = NULL,
+          extensions = 'Buttons', options = list(dom = 'Bfrtip',
+    buttons = c('copy', 'csv', 'excel', 'pdf', 'print'))) %>%
+    formatRound("eff",2) %>%
+    formatPercentage("per100",2)
+
+}
+# bd_tabela_mod_conglomerados(dea_eff_2012_2021_mod1_c1,titulo_tab_conglomerado_mod1[4])
+# bd_tabela_mod_conglomerados(dea_eff_2012_2021_mod1_c2,titulo_tab_conglomerado_mod1[5])
+# bd_tabela_mod_conglomerados(dea_eff_2012_2021_mod1_c3,titulo_tab_conglomerado_mod1[6])
+
+```
+
+
+### Tabela de percentuais DEA modelo 1 dos conglomerados (1) **`r bd_tabela_mod_conglomerados(dea_eff_2012_2021_mod1_c1,titulo_tab_conglomerado_mod1[4])`** 
+
+### Tabela de percentuais DEA modelo 1 dos conglomerados (2) **`r bd_tabela_mod_conglomerados(dea_eff_2012_2021_mod1_c2,titulo_tab_conglomerado_mod1[5])`**
+
+### Tabela de percentuais DEA modelo 1 dos conglomerados (3) **`r bd_tabela_mod_conglomerados(dea_eff_2012_2021_mod1_c3,titulo_tab_conglomerado_mod1[6])`**
+
+
+## **`r nome_modelos[2]`**
+```{r mod2 Banco  1b, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Importando dados modelo 1
+#bd_dea_mod2 <- bd_dea_2012_2021
+#bd_dea_mod2 <- select(bd_dea_2012_2021, uf, ano, cod_cluster , zf_ft_tot, zf_aport_in, zs_infra, zy_ubp_1000_hab)
+
+```
+
+### Tabela de dados modelo 2
+```{r Tabela de dados mod2 2b, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+## Tabela de dados completa Original
+#Visualiza o banco em forma de tabela dinâmica
+bd_tabela_mod2 <- function(bd_temp,bd_temp2){
+
+datatable(bd_temp, 
+          caption = bd_temp2,
+          style = "auto", width = NULL, height = NULL, elementId = NULL,
+          extensions = 'Buttons', options = list(dom = 'Bfrtip',
+    buttons = c('copy', 'csv', 'excel', 'pdf', 'print'))) %>%
+    formatRound("zf_ft_tot",2) %>%
+    formatRound("zf_aport_in",2) %>%
+    formatRound("zs_infra",2) %>%
+    formatRound("zy_ubp_1000_hab",2) %>% 
+    formatRound("zy_rec_gerada",2)
+ }
+bd_tabela_mod2((select(bd_dea_2012_2021, uf, cod_cluster, zf_ft_tot, zf_aport_in, zs_infra, zy_ubp_1000_hab, zy_rec_gerada)),titulo_tab_mod[4])
+
+```
+
+
+```{r mod2 Data Envelopment Analysis: R deaR 3e, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#limpa espaço de trabalho
+#remove(list=ls())
+
+#### Cálculo de eficiência do Modelo 1 - x = FT, CUSTEIO e y = UBP total/ 1000 - 2012 a 2021
+
+i <- (0) #Reinicializar variável de incremento.
+
+ano_i <- (2012) #Ano inicial do range.
+ano_f <- (2021) #Ano final do range.
+
+temp <- (0) #Reinicializar variável temporária.
+
+#Variável para rownames
+#uf <- bd_dea_2012_2021 %>% filter(bd_dea_2012_2021$ano==2012) %>% select(uf, cod_cluster)
+dea_mod2_matriz_2012_2021 <- uf
+dea_mod2_matriz_2012_2021$mod <- "Modelo_2"
+
+
+#Filtrar em loop somente os registro pelos exercícios , colunas de UF, força de trabalho e custeio total.
+for (i in (ano_i:ano_f)){
+
+  temp <- (0)
+  temp2 <- (0)
+  ano_cont <- c("2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021")
+    temp <- bd_dea_2012_2021 %>% filter(bd_dea_2012_2021$ano==i) %>% select(uf, zf_ft_tot, zf_aport_in, zs_infra, zy_ubp_1000_hab, zy_rec_gerada)
+    
+    #Create a "read_data" object 
+    temp <- read_data(temp, dmus = 1, ni = 3, no = 2)
+    
+    #Solve the 2 stage DEA model "oi" ou "oo"  / "vrs" ou "crs" no = 1)
+    temp <- model_basic(temp,         
+                 orientation = c("io"),
+                 rts = c("crs"))
+    
+    #recuperar valores do eff do DEA
+    temp2 <- data.frame(efficiencies(temp))
+    
+    
+    #Transformar valor de eficiencia em %, ordenar decrescente e e cria fator para as UF
+    temp2 <- rename(temp2, eff = efficiencies.temp.) #Renomeia coluna eff
+    temp2$per100 <- percent(temp2$eff,1) #Formato percentual com o método percent() neste pacote é usado para representar os vetores numéricos no formato de porcentagem.
+    
+    
+    #Recupera nome das UF do rownames
+    temp2$uf <- rownames(temp2,do.NULL = TRUE, prefix = "row")
+    
+    #Recupera nome do cluster
+    temp2$cod_cluster <- uf$cod_cluster
+    
+    #Criar coluna de condicional de eficiencia com faixa de tolerancia "Abaixo de 50%", "Média entre 70% e 50%" e "Ideal acima de 70%"
+    temp2 <- temp2 %>% 
+    mutate(eficiencia = case_when(eff < 0.4999 ~ "C - Baixo - menos de 50%",
+                                 (eff > 0.5000) & (eff < 0.7001) ~ "B - Médio - entre 70% a 50%",
+                                 eff > 0.7000 ~ "A - Eficiente - acima de 70%"))
+    
+     #Recupera nome das UF do rownames
+     #temp2 %>% inner_join(uf)
+    
+     #temp2 <- column_to_rownames(temp, var = "uf")
+   
+     #Criar ordenação por fator
+    #temp2$uf <- factor(as.character(temp2$uf), levels = temp2$uf[order(temp2$per100)])
+    
+    #Cria dataframe por ano 
+     temp2$ano <- i
+     assign(paste0("dea_data_mod2_final_", i), temp2 )
+    
+    
+    #cria matriz de eficiencia da série histórica 2012 a 2021
+     dea_mod2_matriz_2012_2021[paste0(i)] <- temp2$per100
+    
+}
+
+    eff_mod2 <- rbind(dea_data_mod2_final_2012, dea_data_mod2_final_2013, dea_data_mod2_final_2014, dea_data_mod2_final_2015, dea_data_mod2_final_2016, dea_data_mod2_final_2017, dea_data_mod2_final_2018, dea_data_mod2_final_2019, dea_data_mod2_final_2020, dea_data_mod2_final_2021)
+
+
+    dea_eff_2012_2021_mod2_c1 <- eff_mod2 %>% filter(cod_cluster == 1) %>% select(uf, ano, cod_cluster, eff, per100, eficiencia)
+    dea_eff_2012_2021_mod2_c2 <- eff_mod2 %>% filter(cod_cluster == 2) %>% select(uf, ano, cod_cluster, eff, per100, eficiencia)
+    dea_eff_2012_2021_mod2_c3 <- eff_mod2 %>% filter(cod_cluster == 3) %>% select(uf, ano, cod_cluster, eff, per100, eficiencia)
+
+#Estimating Efficiency scores
+# efficiencies(bd_dea_mod2_data_calc)
+# 
+# eff <- efficiencies(bd_dea_mod2_data_calc)
+# 1/eff
+
+#summary(modelo_basico_1)
+
+```
+
+### Tabela de percentuais DEA modelo 2
+```{r Tabela de dados mod2 3f, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+## Tabela de dados completa Original
+#Visualiza o banco em forma de tabela dinâmica
+bd_tabela_mod2 <- function(bd_temp,bd_temp2){
+
+datatable(bd_temp, 
+          caption = bd_temp2,
+          style = "auto", width = NULL, height = NULL, elementId = NULL,
+          extensions = 'Buttons', options = list(dom = 'Bfrtip',
+    buttons = c('copy', 'csv', 'excel', 'pdf', 'print'))) %>%
+    formatPercentage("2012",2) %>%
+    formatPercentage("2013",2) %>%
+    formatPercentage("2014",2) %>%
+    formatPercentage("2015",2) %>%
+    formatPercentage("2016",2) %>%
+    formatPercentage("2017",2) %>%
+    formatPercentage("2018",2) %>%
+    formatPercentage("2019",2) %>%
+    formatPercentage("2020",2) %>%
+    formatPercentage("2021",2)
+}
+bd_tabela_mod2(dea_mod2_matriz_2012_2021,titulo_tab_mod_eff[4])
+
+```
+
+### Tabela de percentuais DEA modelo 2 dos conglomerados (1) **`r bd_tabela_mod_conglomerados(dea_eff_2012_2021_mod1_c1,titulo_tab_conglomerado_mod1[4])`**
+
+### Tabela de percentuais DEA modelo 2 dos conglomerados (2) **`r bd_tabela_mod_conglomerados(dea_eff_2012_2021_mod1_c2,titulo_tab_conglomerado_mod1[5])`**
+
+### Tabela de percentuais DEA modelo 2 dos conglomerados (3) **`r bd_tabela_mod_conglomerados(dea_eff_2012_2021_mod1_c3,titulo_tab_conglomerado_mod1[6])`**
+
+```{r mod1 e mod2 Data Envelopment Analysis: R deaR 5b, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Cria matriz por UF para gráficos de linha
+   
+    eff_mod1$mod <- "Modelo_1"
+    eff_mod2$mod <- "Modelo_2"
+    
+    eff_mod1_mod2 <- rbind(eff_mod1,eff_mod2)
+    
+    eff_mod1_mod2_ac <- eff_mod1_mod2 %>% filter(uf == "AC") %>% select(uf, ano, cod_cluster, mod, eff, per100, eficiencia)
+    eff_mod1_mod2_al <- eff_mod1_mod2 %>% filter(uf == "AL") %>% select(uf, ano, cod_cluster, mod, eff, per100, eficiencia)
+    eff_mod1_mod2_am <- eff_mod1_mod2 %>% filter(uf == "AM") %>% select(uf, ano, cod_cluster, mod, eff, per100, eficiencia)
+    eff_mod1_mod2_ap <- eff_mod1_mod2 %>% filter(uf == "AP") %>% select(uf, ano, cod_cluster, mod, eff, per100, eficiencia)
+    eff_mod1_mod2_ba <- eff_mod1_mod2 %>% filter(uf == "BA") %>% select(uf, ano, cod_cluster, mod, eff, per100, eficiencia)
+    eff_mod1_mod2_ce <- eff_mod1_mod2 %>% filter(uf == "CE") %>% select(uf, ano, cod_cluster, mod, eff, per100, eficiencia)
+    eff_mod1_mod2_es <- eff_mod1_mod2 %>% filter(uf == "ES") %>% select(uf, ano, cod_cluster, mod, eff, per100, eficiencia)
+    eff_mod1_mod2_go <- eff_mod1_mod2 %>% filter(uf == "GO") %>% select(uf, ano, cod_cluster, mod, eff, per100, eficiencia)
+    eff_mod1_mod2_ma <- eff_mod1_mod2 %>% filter(uf == "MA") %>% select(uf, ano, cod_cluster, mod, eff, per100, eficiencia)
+    eff_mod1_mod2_mg <- eff_mod1_mod2 %>% filter(uf == "MG") %>% select(uf, ano, cod_cluster, mod, eff, per100, eficiencia)
+    eff_mod1_mod2_ms <- eff_mod1_mod2 %>% filter(uf == "MS") %>% select(uf, ano, cod_cluster, mod, eff, per100, eficiencia)
+    eff_mod1_mod2_mt <- eff_mod1_mod2 %>% filter(uf == "MT") %>% select(uf, ano, cod_cluster, mod, eff, per100, eficiencia)
+    eff_mod1_mod2_pa <- eff_mod1_mod2 %>% filter(uf == "PA") %>% select(uf, ano, cod_cluster, mod, eff, per100, eficiencia)
+    eff_mod1_mod2_pb <- eff_mod1_mod2 %>% filter(uf == "PB") %>% select(uf, ano, cod_cluster, mod, eff, per100, eficiencia)
+    eff_mod1_mod2_pe <- eff_mod1_mod2 %>% filter(uf == "PE") %>% select(uf, ano, cod_cluster, mod, eff, per100, eficiencia)
+    eff_mod1_mod2_pi <- eff_mod1_mod2 %>% filter(uf == "PI") %>% select(uf, ano, cod_cluster, mod, eff, per100, eficiencia)
+    eff_mod1_mod2_pr <- eff_mod1_mod2 %>% filter(uf == "PR") %>% select(uf, ano, cod_cluster, mod, eff, per100, eficiencia)
+    eff_mod1_mod2_rj <- eff_mod1_mod2 %>% filter(uf == "RJ") %>% select(uf, ano, cod_cluster, mod, eff, per100, eficiencia)
+    eff_mod1_mod2_rn <- eff_mod1_mod2 %>% filter(uf == "RN") %>% select(uf, ano, cod_cluster, mod, eff, per100, eficiencia)
+    eff_mod1_mod2_ro <- eff_mod1_mod2 %>% filter(uf == "RO") %>% select(uf, ano, cod_cluster, mod, eff, per100, eficiencia)
+    eff_mod1_mod2_rr <- eff_mod1_mod2 %>% filter(uf == "RR") %>% select(uf, ano, cod_cluster, mod, eff, per100, eficiencia)
+    eff_mod1_mod2_rs <- eff_mod1_mod2 %>% filter(uf == "RS") %>% select(uf, ano, cod_cluster, mod, eff, per100, eficiencia)
+    eff_mod1_mod2_sc <- eff_mod1_mod2 %>% filter(uf == "SC") %>% select(uf, ano, cod_cluster, mod, eff, per100, eficiencia)
+    eff_mod1_mod2_se <- eff_mod1_mod2 %>% filter(uf == "SE") %>% select(uf, ano, cod_cluster, mod, eff, per100, eficiencia)
+    eff_mod1_mod2_sp <- eff_mod1_mod2 %>% filter(uf == "SP") %>% select(uf, ano, cod_cluster, mod, eff, per100, eficiencia)
+    eff_mod1_mod2_to <- eff_mod1_mod2 %>% filter(uf == "TO") %>% select(uf, ano, cod_cluster, mod, eff, per100, eficiencia)
+
+```
+
+# Gráficos de linha comparativo por UF - **`r titulo_graf_linha[1]`**. {.tabset .tabset-fade .tabset-pills}
+```{r mod2 graficos resultado eficiencia 3i, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Grafico de barras na horizontal - Percentual de aproximação com a fronteira de eficiência 100% nos estados da RBMLQ-I
+graf_linha_eff_uf <- function(bd_temp1,bd_temp2,bd_temp3){
+
+a <- ggplot(data=bd_temp1, aes(x=ano, y=per100)) +
+  geom_line(aes(linetype=mod, color = mod))+
+  #geom_point(aes(color = mod, shape=mod))+
+  #guides(col=guide_legend("MODELOS"))+
+  scale_color_manual(values = c("red", "blue")) +
+  scale_x_continuous(name = "ANOS") +
+  scale_y_continuous(labels = scales::percent, name = "PERCENTUAL DE EFICIÊNCIA", limits = c(0, 1))+
+  geom_text(aes(label = sprintf("%.f%%", (per100)*100)))+ # Acrescenta números ao gráfico
+  theme_bw(base_size = 10)+
+  labs(title = paste(bd_temp2, bd_temp3, sep = ' - '))#,
+
+return (a)
+}
+# graf_linha_eff_uf(eff_mod1_mod2_ac,nome_estados[1],titulo_graf_linha[2])
+# graf_linha_eff_uf(eff_mod1_mod2_al,nome_estados[2],titulo_graf_linha[2])
+# graf_linha_eff_uf(eff_mod1_mod2_am,nome_estados[3],titulo_graf_linha[2])
+# graf_linha_eff_uf(eff_mod1_mod2_ap,nome_estados[4],titulo_graf_linha[2])
+# graf_linha_eff_uf(eff_mod1_mod2_ba,nome_estados[5],titulo_graf_linha[2])
+# graf_linha_eff_uf(eff_mod1_mod2_ce,nome_estados[6],titulo_graf_linha[2])
+# graf_linha_eff_uf(eff_mod1_mod2_es,nome_estados[7],titulo_graf_linha[2])
+# graf_linha_eff_uf(eff_mod1_mod2_go,nome_estados[8],titulo_graf_linha[2])
+# graf_linha_eff_uf(eff_mod1_mod2_ma,nome_estados[9],titulo_graf_linha[2])
+# graf_linha_eff_uf(eff_mod1_mod2_mg,nome_estados[10],titulo_graf_linha[2])
+# graf_linha_eff_uf(eff_mod1_mod2_ms,nome_estados[11],titulo_graf_linha[2])
+# graf_linha_eff_uf(eff_mod1_mod2_mt,nome_estados[12],titulo_graf_linha[2])
+# graf_linha_eff_uf(eff_mod1_mod2_pa,nome_estados[13],titulo_graf_linha[2])
+# graf_linha_eff_uf(eff_mod1_mod2_pb,nome_estados[14],titulo_graf_linha[2])
+# graf_linha_eff_uf(eff_mod1_mod2_pe,nome_estados[15],titulo_graf_linha[2])
+# graf_linha_eff_uf(eff_mod1_mod2_pi,nome_estados[16],titulo_graf_linha[2])
+# graf_linha_eff_uf(eff_mod1_mod2_pr,nome_estados[17],titulo_graf_linha[2])
+# graf_linha_eff_uf(eff_mod1_mod2_rj,nome_estados[18],titulo_graf_linha[2])
+# graf_linha_eff_uf(eff_mod1_mod2_rn,nome_estados[19],titulo_graf_linha[2])
+# graf_linha_eff_uf(eff_mod1_mod2_ro,nome_estados[20],titulo_graf_linha[2])
+# graf_linha_eff_uf(eff_mod1_mod2_rr,nome_estados[21],titulo_graf_linha[2])
+# graf_linha_eff_uf(eff_mod1_mod2_rs,nome_estados[22],titulo_graf_linha[2])
+# graf_linha_eff_uf(eff_mod1_mod2_sc,nome_estados[23],titulo_graf_linha[2])
+# graf_linha_eff_uf(eff_mod1_mod2_se,nome_estados[24],titulo_graf_linha[2])
+# graf_linha_eff_uf(eff_mod1_mod2_sp,nome_estados[25],titulo_graf_linha[2])
+# graf_linha_eff_uf(eff_mod1_mod2_to,nome_estados[26],titulo_graf_linha[2])
+
+```
+
+**Conglomerado 1 (AC,AL,AP,PB,PI,RN,RO,RR,SE,TO), Conglomerado 2 (AM,CE,ES,GO,MA,MS,PA,PE) e Conglomerado 3 (BA,MG,MT,PR,RJ,RS,SC,SP)**  
+
+CLIQUE NO GRÁFICO DA RESPECTIVA UF PARA VER OS RESULTADOS  
+
+## **`r nome_estados[1]`**
+```{r mod2 graficos resultado eficiencia 1, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+graf_linha_eff_uf(eff_mod1_mod2_ac,nome_estados[1],titulo_graf_linha[2])
+```
+
+## **`r nome_estados[2]`**
+```{r mod2 graficos resultado eficiencia 2, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+graf_linha_eff_uf(eff_mod1_mod2_al,nome_estados[2],titulo_graf_linha[2])
+```
+
+## **`r nome_estados[4]`**
+```{r mod2 graficos resultado eficiencia 4, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+graf_linha_eff_uf(eff_mod1_mod2_ap,nome_estados[4],titulo_graf_linha[2])
+```
+
+## **`r nome_estados[14]`**
+```{r mod2 graficos resultado eficiencia 14, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+graf_linha_eff_uf(eff_mod1_mod2_pb,nome_estados[14],titulo_graf_linha[2])
+```
+
+## **`r nome_estados[16]`**
+```{r mod2 graficos resultado eficiencia 16, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+graf_linha_eff_uf(eff_mod1_mod2_pi,nome_estados[16],titulo_graf_linha[2])
+```
+
+## **`r nome_estados[19]`**
+```{r mod2 graficos resultado eficiencia 19, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+graf_linha_eff_uf(eff_mod1_mod2_rn,nome_estados[19],titulo_graf_linha[2])
+```
+
+## **`r nome_estados[20]`**
+```{r mod2 graficos resultado eficiencia 20, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+graf_linha_eff_uf(eff_mod1_mod2_ro,nome_estados[20],titulo_graf_linha[2])
+```
+
+## **`r nome_estados[21]`**
+```{r mod2 graficos resultado eficiencia 21, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+graf_linha_eff_uf(eff_mod1_mod2_rr,nome_estados[21],titulo_graf_linha[2])
+```
+
+## **`r nome_estados[24]`**
+```{r mod2 graficos resultado eficiencia 24, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+graf_linha_eff_uf(eff_mod1_mod2_se,nome_estados[24],titulo_graf_linha[2])
+```
+
+## **`r nome_estados[26]`**
+```{r mod2 graficos resultado eficiencia 26, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+graf_linha_eff_uf(eff_mod1_mod2_to,nome_estados[26],titulo_graf_linha[2])
+```  
+
+CLIQUE NO GRÁFICO DA RESPECTIVA UF PARA VER OS RESULTADOS  
+
+## **`r nome_estados[3]`**
+```{r mod2 graficos resultado eficiencia 3, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+graf_linha_eff_uf(eff_mod1_mod2_am,nome_estados[3],titulo_graf_linha[2])
+```
+
+## **`r nome_estados[6]`**
+```{r mod2 graficos resultado eficiencia 6, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+graf_linha_eff_uf(eff_mod1_mod2_ce,nome_estados[6],titulo_graf_linha[2])
+```
+
+## **`r nome_estados[7]`**
+```{r mod2 graficos resultado eficiencia 7, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+graf_linha_eff_uf(eff_mod1_mod2_es,nome_estados[7],titulo_graf_linha[2])
+```
+
+## **`r nome_estados[8]`**
+```{r mod2 graficos resultado eficiencia 8, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+graf_linha_eff_uf(eff_mod1_mod2_go,nome_estados[8],titulo_graf_linha[2])
+```
+
+## **`r nome_estados[9]`**
+```{r mod2 graficos resultado eficiencia 9, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+graf_linha_eff_uf(eff_mod1_mod2_ma,nome_estados[9],titulo_graf_linha[2])
+```
+
+## **`r nome_estados[11]`**
+```{r mod2 graficos resultado eficiencia 11, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+graf_linha_eff_uf(eff_mod1_mod2_ms,nome_estados[11],titulo_graf_linha[2])
+```
+
+## **`r nome_estados[13]`**
+```{r mod2 graficos resultado eficiencia 13, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+graf_linha_eff_uf(eff_mod1_mod2_pa,nome_estados[13],titulo_graf_linha[2])
+```
+
+## **`r nome_estados[15]`**
+```{r mod2 graficos resultado eficiencia 15, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+graf_linha_eff_uf(eff_mod1_mod2_pe,nome_estados[15],titulo_graf_linha[2])
+```
+
+CLIQUE NO GRÁFICO DA RESPECTIVA UF PARA VER OS RESULTADOS  
+
+## **`r nome_estados[5]`**
+```{r mod2 graficos resultado eficiencia 5, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+graf_linha_eff_uf(eff_mod1_mod2_ba,nome_estados[5],titulo_graf_linha[2])
+```
+
+## **`r nome_estados[10]`**
+```{r mod2 graficos resultado eficiencia 10, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+graf_linha_eff_uf(eff_mod1_mod2_mg,nome_estados[10],titulo_graf_linha[2])
+```
+
+## **`r nome_estados[12]`**
+```{r mod2 graficos resultado eficiencia 12, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+graf_linha_eff_uf(eff_mod1_mod2_mt,nome_estados[12],titulo_graf_linha[2])
+```
+
+## **`r nome_estados[17]`**
+```{r mod2 graficos resultado eficiencia 17, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+graf_linha_eff_uf(eff_mod1_mod2_pr,nome_estados[17],titulo_graf_linha[2])
+```
+
+## **`r nome_estados[18]`**
+```{r mod2 graficos resultado eficiencia 18, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+graf_linha_eff_uf(eff_mod1_mod2_rj,nome_estados[18],titulo_graf_linha[2])
+```
+
+## **`r nome_estados[22]`**
+```{r mod2 graficos resultado eficiencia 22, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+graf_linha_eff_uf(eff_mod1_mod2_rs,nome_estados[22],titulo_graf_linha[2])
+```
+
+## **`r nome_estados[23]`**
+```{r mod2 graficos resultado eficiencia 23, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+graf_linha_eff_uf(eff_mod1_mod2_sc,nome_estados[23],titulo_graf_linha[2])
+```
+
+## **`r nome_estados[25]`**
+```{r mod2 graficos resultado eficiencia 25, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+graf_linha_eff_uf(eff_mod1_mod2_sp,nome_estados[25],titulo_graf_linha[2])
+```
+
+
+
+# Diversos {.tabset .tabset-fade}
+
+## Créditos - Participantes do Projeto Capacidade Produtiva:
+
+**PATROCINADORES DO PROJETO**\
+***
+
+**COORDENADORES DO PROJETO**\
+***
+
+**MEMBROS DO PROJETO**\
+Allan Batista Martins,\
+***
+
+## Material de Apoio
+
+-   A Loops in R Tutorial - Usage and Alternatives: (https://www.datacamp.com/tutorial/tutorial-on-loops-in-r#for-loops-in-r)
+
+-   Diagrama de Ishikawa: (https://www.siteware.com.br/metodologias/diagrama-de-ishikawa/)
+
+-   How to Draw a plotly Line Plot in R - Ploly: (https://statisticsglobe.com/plotly-line-plot-r)
+
+-   Visualizações Interativas em gráficos - Smoothed conditional means - Ploly: (http://sillasgonzaga.com/material/cdr/htmlwidgets.html#plotly)
+
+-   Tabela de Cores HTML (nome, hexadecimal e RGB): (https://celke.com.br/artigo/tabela-de-cores-html-nome-hexadecimal-rgb)
+
+-   Tutorial - Data Envelopment Analysis with deaR: (https://www.uv.es/dearshiny/Tutoriales_deaR/Tutorial_deaR_english.pdf)
+
+-   Tratamento de Outliers (Bacon) - R na Pesquisa Contábil: [Alessanderson Jacó de Carvalho](https://youtu.be/hfO5LLbRioY)
+
+-   PLAYLIST - R na Pesquisa Contábil (Parte 1 ao 20): (https://www.youtube.com/playlist?list=PLF3Sjk1EY74ZcUWHE6ZDPHFRu9zp_20gD)
+
+-   PLAYLIST - Criando gráficos no R com o ggplot2 (Parte 1 ao 2): [Fernanda Peres](https://youtu.be/DYsPRa3vpf0)
+
+-   PLAYLIST - R Markdown: Gerando relatórios usando o R (Parte 1 ao 5): [Fernanda Peres](https://youtu.be/obxa5VH4WvY)
+
+-   Minicurso R - UFPR: [UFPR](https://youtu.be/obxa5VH4WvY)
+
+-   R Markdown: The Definitive Guide: [Yihui Xie, J. J. Allaire, Garrett Grolemund](https://bookdown.org/yihui/rmarkdown/)
