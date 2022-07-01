@@ -1,0 +1,1244 @@
+---
+title: "Projeto de Capacidade Produtiva"
+subtitle: FALSE
+author: "Allan B. Martins"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+    html_document:
+      highlight: espresso
+      includes:
+        in_header: cabecalhofinal_branco.html
+      theme: flatly
+      number_sections: TRUE
+      toc: TRUE
+      toc_float:
+        collapsed: TRUE
+        smooth_scroll: TRUE
+---
+
+```{r Pacotes, warning = FALSE, message = FALSE, echo = FALSE, results='hide'}
+#library(revealjs)
+library(rmdformats)
+library(dplyr)#pacote mais útil para realizar transformação de dados.
+library(tidyverse)#pacote guarda-chuva que consolida uma série de ferramentas que fazem parte o ciclo da ciência de dados.
+library(cluster)# Métodos de análise de cluster.
+library(factoextra)#Fornece algumas funções fáceis de usar para extrair e visualizar a saída de análises de dados multivariadas.
+library(readxl)#O pacote readxl facilita a obtenção de dados do Excel e para o R.
+library(rstatix)#Provides a simple and intuitive pipe-friendly framework, for performing basic   statistical tests.
+ library(emmeans)# Pacote para obter médias marginais estimadas (EMMs) para muitos modelos lineares, lineares generalizados e mistos.
+library(ggplot2)#Um sistema para a criação 'declarativa' de gráficos, baseado na "Gramática dos Gráficos".
+library(knitr)#Fornece uma ferramenta de uso geral para geração de relatórios dinâmicos em R usando técnicas de programação literária.
+library(kableExtra)#Construa tabelas complexas em HTML ou 'LaTeX' usando 'kable ()' de 'knitr' e a sintaxe de tubulação de 'magrittr'.
+library(htmltools)#Ferramentas para geração e saída de HTML.
+ library(zoo)#Uma classe S3 com métodos para observações indexadas totalmente ordenadas.
+library(lmtest)#Uma coleção de testes, conjuntos de dados e exemplos para verificação diagnóstica em modelos de regressão linear.
+library(rmarkdown)#Converta documentos R Markdown em uma variedade de formatos.
+library(cowplot)#Fornece vários recursos que ajudam a criar figuras de qualidade de publicação com 'ggplot2'.
+library(SciViews) #Funções para instalar adições de SciViews ao R e mais ferramentas.
+library(forecast) #Métodos e ferramentas para exibir e analisar previsões de séries temporais univariadas,
+#library(car) #Conflito
+library(data.table) #data.table fornece uma versão de alto desempenho dos R's base com sintaxe e aprimoramentos de recursos para facilitar o uso, conveniência e velocidade de programação.data.frame
+library(corrplot) #O corrplot do pacote R fornece uma ferramenta exploratória visual na matriz de correlação que suporta reordenamento variável automático para ajudar a detectar padrões ocultos entre variáveis.
+library(reshape2) #reshape2 is superseded: only changes necessary to keep it on CRAN will be made. We recommend using tidyr instead.
+library(openxlsx) # Este pacote R simplifica a criação de arquivos fornecendo uma interface de alto nível para escrever, estilizar e editar planilhas. Através do uso do Rcpp, os tempos de leitura/gravação são comparáveis aos pacotes xlsx
+library(scales) #O uso mais comum do pacote de escalas é personalizar para controlar a aparência de rótulos de eixo e legenda.
+library(tibble) #Um tibble, ou , é uma reimaginação moderna do data.frame, mantendo que o tempo provou ser eficaz, e jogando fora o que não é.
+
+# ctrl + shift + c
+
+library(outliers) # Pacote para tratamento de outliers
+library(deaR) #Conjunto de funções para Análise de Envoltório de Dados. Ele executa modelos DEA clássicos e difusos.
+library (robustX) # Se esse pacote não estiver instalado, instalar utilizando o comando install.packages("robustX")
+#library(Benchmarking) #Métodos para análise de fronteiras, Análise de Envoltório de Dados (DEA), sob diferentes premissas tecnológicas (fdh, vrs, drs, crs, irs, add/frh e fdh+), e utilizando diferentes medidas de eficiência (baseada em entrada, baseada em saída, gráfico hiperbólico, aditivo, super e eficiência direcional).
+
+library(formattable) #O pacote “formatável” fornece métodos para criar vetores formatáveis e objetos de quadro de dados.
+#library(plyr) #O pacote plyr é um conjunto de ferramentas limpas e consistentes que implementam o padrão split-apply-combine em R. Este é um padrão extremamente comum na análise de dados: você resolve um problema complexo dividindo-o em pequenos pedaços, fazendo algo com cada peça e, em seguida, combinando os resultados novamente.
+
+#library(sqldf) #A função sqldf() é normalmente aprovada um único argumento que é uma instrução de seleção SQL onde os nomes de tabela são nomes comuns de quadros de dados R. sqldf() configura de forma transparente um banco de dados, importa os quadros de dados para esse banco de dados, executa a seleção SQL ou outra declaração e retorna o resultado usando uma heurística para determinar qual classe atribuir a cada coluna do quadro de dados retornado. As funções sqldf() ou leitura.csv.sql() também podem ser usadas para ler arquivos filtrados em R, mesmo que os arquivos originais sejam maiores do que o próprio R pode lidar. Backends 'RSQLite', 'RH2', 'RMySQL' e 'RPostgreSQL' são suportados.
+#library(scales) #pacote de escalas
+# Instalando o 'geobr'
+#remotes::install_github("ipeaGIT/geobr", subdir = "r-package")
+library(geobr) # Necessárias para os dados dos mapas
+library(ggspatial) #Os dados espaciais mais o poder da estrutura ggplot2 significam um mapeamento mais fácil quando os dados de entrada já estão na forma de objetos espaciais. Fonte de pesquisa:(https://cran.r-project.org/web/packages/ggspatial/index.html)
+#library(ggimage) #Suporta arquivos de imagem e objetos gráficos a serem visualizados no sistema gráfico 'ggplot2'.
+#library(concatenate) #Concatenar strings (conflito ggplot2)
+library(stringr)#pacote stringr, que possui uma sintaxe mais consistente, permitindo ao usuário manipular textos com muito mais facilidade.
+library(clipr) #Copiando tabelas do R para o Excel através da área de transferência
+
+library(qcc)#Quality Control Charts - Gráficos de controle de qualidade shewhart para dados contínuos, atributos e de contagem. Gráficos cusum e EWMA. Operando curvas características. Análise de capacidade de processo. Gráfico pareto e gráfico de causa e efeito. Gráficos de controle multivariados.
+
+library(descr) #Estatísticas descritivas para R
+library(car) #Conflito com dplyr
+#library(carData)
+library(sciplot) #Funções de representação gráfica científica para experimentos fatoriais
+
+library(GGally) #estende o ggplot2 adicionando várias funções para reduzir a complexidade de combinar geoms com dados transformados. Algumas dessas funções incluem uma matriz de gráfico de pares, uma matriz de gráfico de dispersão, um gráfico de coordenadas paralelas, um gráfico de sobrevivência e várias funções para traçar redes.
+library(DT) #Este pacote fornece uma função datatable() para exibir dados R através da biblioteca DataTables (N.B. não deve ser confundido com o pacote data.table).
+
+library(relaimpo) #importância relativa dos regressores
+library(hrbrthemes) #Este é um pacote muito focado que fornece temas centrados em tipografia e componentes de tema para ggplot2. É um extrato/riff de hrbrmisc criado por solicitação.
+library(corrr) #é um pacote para explorar correlações em R. Ele se concentra em criar e trabalhar com data frames de correlações (em vez de matrizes) que podem ser facilmente exploradas por meio de funções corrr ou aproveitando ferramentas como as do arrumaverse. Isso, juntamente com as funções corrr primárias, é representado abaixo:
+library(broom) #resume as principais informações sobre modelos em tibble()s organizados. broom fornece três verbos para facilitar a interação com objetos de modelo:
+library(qgraph) #Métodos de plotagem de gráficos, visualização de dados psicométricos e estimativa de modelos gráficos
+library(lubridate) #Pode ser frustrante trabalhar com dados de data e hora no R. Os comandos R para data e hora geralmente não são intuitivos e mudam dependendo do tipo de objeto de data e hora que está sendo usado. Além disso, os métodos que usamos com data e hora devem ser robustos para fusos horários, dias bissextos, horário de verão e outras peculiaridades relacionadas ao horário, e o R não possui esses recursos em algumas situações. O Lubridate torna mais fácil fazer as coisas que R faz com datas e horas e possível fazer as coisas que R não faz.
+library(plotly) #Qualquer gráfico feito com o pacote plotly R é alimentado pela biblioteca JavaScript plotly.js. A função plot_ly() fornece uma interface 'direta' para plotly.js com algumas abstrações adicionais para ajudar a reduzir a digitação. Essas abstrações, inspiradas na Grammar of Graphics e no ggplot2, tornam muito mais rápido a iteração de um gráfico para outro, facilitando a descoberta de recursos interessantes nos dados (Wilkinson 2005; Wickham 2009). Para demonstrar, usaremos plot_ly() para explorar o conjunto de dados de diamantes do ggplot2 e aprender um pouco como plotly e plotly.js funcionam ao longo do caminho.
+library(latticeExtra) #latticeExtra é um pacote R (ou seja, um pacote para o ambiente de computação estatística R), fornecendo funções para gerar gráficos estatísticos. Ele estende o framework Lattice (pacote lattice), que é uma implementação de gráficos Trellis em R.
+library(varImp) #Computes the variable importance for arbitrary measures from the 'measures' package.
+library(performance) #O objetivo principal do pacote de desempenho é preencher essa lacuna e fornecer utilidades para índices de computação de qualidade do modelo e bondade do ajuste. Estas incluem medidas como r-quadrado (R2), erro quadrado médio raiz (RMSE) ou coeficiente de correlação intraclasse (ICC), mas também funções para verificar modelos (mistos) para superdispersão, inflação zero, convergência ou singularidade.
+library(pdftools) #Utilities based on libpoppler for extracting text, fonts, attachments and metadata from a pdf file. (https://github.com/ropensci/pdftools)
+
+```
+
+```{r Item, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#remove(list=ls())
+
+#Define qtd de casas decimais
+options(scipen=999)
+options(digits = 4)
+
+#Defini padrões para textos dos títulos
+ano <- ("2021")
+periodo <- ("JAN A DEZ")
+
+tipo_modelo <- ("Regressão Linear Múltipla (RLM)")
+
+versao <- ("v1")
+nome_modelos <- c("Modelo 1 + 2","Modelo 3")
+
+titulo_original <- ("Tabela de dados completa original")
+
+titulo_conglomerado <- c("Tabela de dados conglomerados 1+2","Tabela de dados  conglomerado 3")
+
+titulo_grafico_anos <- ("Figura 1 - Gráfico evolução da UBP Total em 2012 a 2021")
+
+titulo_clusters <- c("Tabela de dados conglomerado 1 + 2","Tabela de dados conglomerado 3")
+
+descri_modelos <- c("x = FT, APORT_IN, INFRA e y = UBP total")
+
+pt <- c("y1_ubp_tot", "Y1_UBP_TOT")
+
+atividade_legenda <- c("UBP Total","UBP TOTAL","UBP Tot.","UBP TOT.","UBP Total /1000")
+forca_legenda <- c("Força de Trabalho", "FORÇA DE TRABALHO", "Força Trab.", "FORÇA TRAB.")
+cust_legenda <- c("Aport_In","APORT_IN")
+infra_legenda <- c("Infra","INFRA")
+forca_exp2_legenda <- c("Força de Trabalho^2","FORÇA DE TRABALHO^2")
+cust_exp2_legenda <- c("Aport_In^2","APORT_IN^2")
+atividade_raiz_legenda <- c("Raiz UBP Total","RAIZ UBP TOTAL","Raiz UBP Tot.","Raiz UBP TOT.","Raiz UBP Total/1000")
+
+```
+
+
+```{r Leitura banco de dedos completo, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+setwd("D:/01_Digea/02_Proj/02_Proj_CP/02 Etapa-II/08 - Retorno na Regressão Multipla Linear Etapa I")
+
+bdcp_2012_2022 <- read_excel("modelo_ubp_2012_2022.xlsx", sheet=1, col_names=TRUE)
+```
+
+```{r Filtro dos dados necessários, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+library(dplyr)
+cg_sub_1_2 <- c("AC","AL","AP","PB","PI","RN","RO","RR","SE","TO","AM","CE","ES","GO","MA","MS","PA","PE")
+cg_sub_3 <- c("BA","MG","MT","PR","RJ","RS","SC","SP")
+
+#Cria colunas de força e custeio com exponenciação ao quadrado 
+bdcp_2012_2022$x4_ft_tot_exp2 <- bdcp_2012_2022$x1_ft_tot^2
+bdcp_2012_2022$x5_aport_in_exp2 <- bdcp_2012_2022$x2_aport_in^2
+bdcp_2012_2022$y2_ubp_tot_raiz <- sqrt (bdcp_2012_2022$y1_ubp_tot)
+
+bdcp_2012_2022 <- bdcp_2012_2022 %>% select(uf, ano, cod_cluster, cod_cluster_sub, y1_ubp_tot, x1_ft_tot, x2_aport_in, x3_infra, x4_ft_tot_exp2,x5_aport_in_exp2,y2_ubp_tot_raiz)
+
+#ano2 <- (2021)
+
+#C 1 + 2
+bdcp_2012_2021_1 <- bdcp_2012_2022 %>% filter(ano<="2021", cod_cluster_sub== 1) %>% select(uf, ano, cod_cluster, cod_cluster_sub, y2_ubp_tot_raiz, x1_ft_tot, x2_aport_in, x3_infra, x4_ft_tot_exp2,x5_aport_in_exp2)
+
+#C 3
+bdcp_2012_2021_2 <- bdcp_2012_2022 %>% filter(ano<="2021", cod_cluster_sub== 2) %>% select(uf, ano, cod_cluster, cod_cluster_sub, y1_ubp_tot, x1_ft_tot, x2_aport_in)
+
+```
+
+
+
+
+
+
+
+
+
+
+# Etapa VII - Previsões dos dados - 2012 a 2021 para 2022 A 2025 - **`r atividade_legenda[1]`**  {-}
+
+# Etapas Regressão Linear Múltipla. {.tabset .tabset-fade .tabset-pills}
+Etapas principais para a modelagem de regressão:
+
+Definir a variável dependente;
+
+Selecionar variáveis independentes;
+
+Coleta dos dados pareados das respectivas variáveis;
+
+Ajustar o modelo obtendo os coeficientes da equação e valor-p;
+
+Reavaliação das variáveis que permanecerão no modelo;
+
+Vamos avaliar o nosso modelo com os seguintes critérios:
+
+1 - Significância
+
+2 - Linearidade
+
+3 - Homocedasticidade dos resíudos (Variância constante dos erros experimentais)
+
+4 - Normalidade dos resíduos
+
+Interpretação do modelo ajustado (equação) e cálculos de previsão;
+
+Utilização da equação para predição da base que nao apresenta a variável resposta;
+
+Utilização da Função predict "Confidence" e "Prediction" com intervalos de confiança
+
+Gerar relaórios dinânmicos com os modelos.
+
+
+# Tarefa - Predição de UBP Totais {.tabset .tabset-fade .tabset-pills}
+
+## Introdução.
+
+O objetivo desse trabalho foi montar um modelo de **Regressão Linear Múltipla (RLM)** para estimar o valor de **UBP Total** (unidade basica de produção) ao longo da série histórica de 2012 até 2021 (Realizado), bem como também aplicar para especificamente o ano de 2022 a 2025 (Previsto) (Yn = y1_ubp_tot), por meio da seleção de algumas variáveis independentes explicativas (por **02 Conglomerados de Estados 1+2 e 3**) (Xn = "x1_ft_tot, "x2_port_in", "x3_infra", "x4_ft_tot_exp2", "x5_aport_in_exp2"), por meio de **técnicas multivariadas de conglomerados**, os dados amostrais foram organizados 02 modelos, ou seja, um modelo para cada conglomerado. Ao todo, serão 2 (1+2 e 3) conglomerados, o objetivo é entregar, os resultados da previsão por meio de **função predict** pelos métodos **"confidence"** (range mais rígido) e **"prediction"** (range mais amplo).
+
+
+### Tabela de dados completa Original 
+```{r Tabela de dados completa Original 1a, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 1, fig.height = 5}
+# Visualiza o banco em forma de tabela dinâmica Tabela dinâmica de dados completa Original
+bd_tabela_dados <- function(bd_temp,bd_temp2){
+
+datatable(bd_temp, 
+          caption = bd_temp2,
+          style = "auto", width = NULL, height = NULL, elementId = NULL,
+          extensions = 'Buttons', options = list(dom = 'Bfrtip',
+    buttons = c('copy', 'csv', 'excel', 'pdf', 'print'))) %>%
+    formatRound("y1_ubp_tot",1) %>%
+    formatRound("x1_ft_tot",1) %>%
+    formatRound("x2_aport_in",1) %>%
+    formatRound("x3_infra",1) %>%
+    formatRound("x4_ft_tot_exp2",1) %>%
+    formatRound("x5_aport_in_exp2",1) %>%
+    formatRound("y2_ubp_tot_raiz",1)
+ }
+bd_tabela_dados(bdcp_2012_2022,titulo_original[1])
+
+```
+
+
+
+### Seleção da variável resposta no modelo (Yn).
+A variável escolhida como resposta do modelo de regressão linear múltipla foi o **UBP Total**.
+
+Essa variável é calculada através do cálculo da quantidade de atividades x fator de produção.
+
+Na Figura 1 observa-se a série temporal de UBP Totais desde 2012 até 2021.
+
+```{r Tabela de dados completa Original 1b, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+## Gráfico evolução da UBP Total em 2012 a 2021 {.tabset .tabset-fade .tabset-pills}# Visualiza o gráfico dos dados completa Original
+graf_tabela_dados <- function(bd_temp,bd_temp2){
+
+historico.ubp <- bd_temp %>% 
+  group_by(ano) %>% 
+  summarise(y1_ubp_tot = sum(y1_ubp_tot))
+historico.ubp$ano <- as.Date(as.character(historico.ubp$ano), format = "%Y")
+historico.ubp$ano <- year(historico.ubp$ano)
+
+# Usual area chart
+p <- historico.ubp %>%
+  ggplot( aes(x=ano, y=y1_ubp_tot/1000)) +
+  geom_area(fill="#69b3a2", alpha=0.5) +
+  geom_line(color="#69b3a2") +
+  ylab("(UBP/1000)") +
+  xlab("(ANOs)") +
+  theme_ipsum()
+
+# Turn it interactive with ggplotly
+p <- ggplotly(p)
+p <- p %>% layout(title = bd_temp2)
+return (p)
+ }
+graf_tabela_dados(bdcp_2012_2022,titulo_grafico_anos[1])
+
+```
+
+
+### Seleção das variáveis explicativas para o modelo (Xn).
+Um conjunto de resultados de valores de correlação foi montado para todas as variáveis presentes na base de dados com a variável de interesse para resposta. Esse conjunto de informações é apresentado na Figura 2, onde os valores de correlação. Desta forma é possível rapidamente identificar as variáveis que estão mais correlacionadas com a variável UBP Totais.
+
+As variáveis escolhidas para fazerem parte do desenvolvimento dos modelo foram: 
+
+**Conglomerado 1+2 (Xn = “x1_ft_tot,”x2_port_in”, “x3_infra”, “x4_ft_tot_exp2”, “x5_aport_in_exp2”)**
+
+**Conglomerado 3 (Xn = “x1_ft_tot,”x2_port_in”)**
+
+Cada diagrama de dispersão abaixo representa uma das variáveis explicativas com a variável resposta. O título de cada um dos diagramas apresenta o valor encontrado de correlação.
+
+### Gráfico de dispersão
+
+```{r diagrama variáveis 1c, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 8}
+cor_diag <- ("red")
+
+diag_tabela_dados <- function(bd_temp,bd_temp2,bd_temp3,bd_temp4,bd_temp5,bd_temp6,bd_temp7,cor_temp){
+
+g1 <- ggplot(bd_temp, aes(x= x1_ft_tot, y=y1_ubp_tot/1000))+
+  geom_point(col=cor_temp, size = 3)+
+  geom_smooth(method = "lm",colour = "red",size = 1,orientation = "x")+
+  geom_text(data = bd_temp,
+      aes(x= x1_ft_tot, y = y1_ubp_tot/1000,
+      label = uf,
+      vjust = -0.5,hjust = -0.5),
+    show.legend = FALSE,
+    size = 1.5)+
+    labs(x=bd_temp3,
+       y=bd_temp2, 
+       title= paste(bd_temp3,  bd_temp2, sep = ' X '))+
+  scale_x_continuous(name = bd_temp3) +
+  scale_y_continuous(name = bd_temp2) +
+  theme_bw()
+
+g2 <- ggplot(bd_temp, aes(x= x2_aport_in, y=y1_ubp_tot/1000))+
+  geom_point(col=cor_temp, size = 3)+
+  geom_smooth(method = "lm",colour = "blue",size = 1,orientation = "x")+
+  geom_text(data = bd_temp,
+      aes(x= x2_aport_in, y = y1_ubp_tot/1000,
+      label = uf,
+      vjust = -0.5,hjust = -0.5),
+    show.legend = FALSE,
+    size = 1.5)+
+    labs(x=bd_temp4,
+       y=bd_temp2, 
+       title= paste(bd_temp4,  bd_temp2, sep = ' X '))+
+  scale_x_continuous(name = bd_temp4) +
+  scale_y_continuous(name = bd_temp2) +
+  theme_bw()
+
+g3 <- ggplot(bd_temp, aes(x= x3_infra, y=y1_ubp_tot/1000))+
+  geom_point(col=cor_temp, size = 3)+
+  geom_smooth(method = "lm",colour = "green",size = 1,orientation = "x")+
+  geom_text(data = bd_temp,
+      aes(x= x3_infra, y = y1_ubp_tot/1000,
+      label = uf,
+      vjust = -0.5,hjust = -0.5),
+    show.legend = FALSE,
+    size = 1.5)+
+    labs(x=bd_temp5,
+       y=bd_temp2, 
+       title= paste(bd_temp5,  bd_temp2, sep = ' X '))+
+  scale_x_continuous(name = bd_temp5) +
+  scale_y_continuous(name = bd_temp2) +
+  theme_bw()
+
+
+g4 <- ggplot(bd_temp, aes(x= x4_ft_tot_exp2, y=y1_ubp_tot/1000))+
+  geom_point(col=cor_temp, size = 3)+
+  geom_smooth(method = "lm",colour = "yellow",size = 1,orientation = "x")+
+  geom_text(data = bd_temp,
+      aes(x= x4_ft_tot_exp2, y = y1_ubp_tot/1000,
+      label = uf,
+      vjust = -0.5,hjust = -0.5),
+    show.legend = FALSE,
+    size = 1.5)+
+    labs(x=bd_temp6,
+       y=bd_temp2, 
+       title= paste(bd_temp6,  bd_temp2, sep = ' X '))+
+  scale_x_continuous(name = bd_temp6) +
+  scale_y_continuous(name = bd_temp2) +
+  theme_bw()
+
+g5 <- ggplot(bd_temp, aes(x= x5_aport_in_exp2, y=y1_ubp_tot/1000))+
+  geom_point(col=cor_temp, size = 3)+
+  geom_smooth(method = "lm",colour = "purple",size = 1,orientation = "x")+
+  geom_text(data = bd_temp,
+      aes(x= x5_aport_in_exp2, y = y1_ubp_tot/1000,
+      label = uf,
+      vjust = -0.5,hjust = -0.5),
+    show.legend = FALSE,
+    size = 1.5)+
+    labs(x=bd_temp7,
+       y=bd_temp2, 
+       title= paste(bd_temp7,  bd_temp2, sep = ' X '))+
+  scale_x_continuous(name = bd_temp7) +
+  scale_y_continuous(name = bd_temp2) +
+  theme_bw()
+
+plot_grid(g1, g2, g3, g4, g5, ncol = 2, nrow = 3)
+}
+#return(a)
+
+diag_tabela_dados(bdcp_2012_2022,atividade_legenda[5],forca_legenda[1],cust_legenda[1],infra_legenda[1],forca_exp2_legenda[1],cust_exp2_legenda[1],cor_diag)
+```
+
+### Correlação entre variável UBP Total
+
+```{r correlação variáveis 1d, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+# Visualiza das variáveis Xn
+#Força de trabalho
+correlacao.forca <- cor(bdcp_2012_2022$x1_ft_tot,bdcp_2012_2022$y1_ubp_tot)
+#Custeio
+correlacao.aport_in <- cor(bdcp_2012_2022$x2_aport_in,bdcp_2012_2022$y1_ubp_tot)
+#Infra
+correlacao.infra <- cor(bdcp_2012_2022$x3_infra,bdcp_2012_2022$y1_ubp_tot)
+#Força de trabalho^2
+correlacao.forca_exp2 <- cor(bdcp_2012_2022$x4_ft_tot_exp2,bdcp_2012_2022$y1_ubp_tot)
+#Custeio^2
+correlacao.aport_in_exp2 <- cor(bdcp_2012_2022$x5_aport_in_exp2,bdcp_2012_2022$y1_ubp_tot)
+
+```
+
+A descrição do que significa cada variável, bem como o seu valor de correlação com a variável UBP Total está especificado abaixo:
+
+"x1_ft_tot" = **`r forca_legenda[1]`**, correlação de **`r format(round(correlacao.forca, 10), nsmall = 10)`**.
+
+"x2_aport_in" = **`r cust_legenda[1]`**, correlação de **`r format(round(correlacao.aport_in, 10), nsmall = 10)`**.
+
+"x3_infra" = **`r infra_legenda[1]`**, correlação de **`r format(round(correlacao.infra, 10), nsmall = 10)`**.
+
+"x4_ft_tot_exp2" = **`r forca_exp2_legenda[1]`**, correlação de **`r format(round(correlacao.forca_exp2, 10), nsmall = 10)`**.
+
+"x5_aport_in_exp2" = **`r cust_exp2_legenda[1]`**, correlação de **`r format(round(correlacao.aport_in_exp2, 10), nsmall = 10)`**.
+
+Todas as variáveis selecionadas apresentaram valores de correlação considerados entre moderado e forte.
+
+
+### Matriz de correlação
+
+A fim de complementar o detalhamento das análises exploratórias das variáveis explicativas foi utilizado a função ggpairs() para montar uma Matriz de correlações. Nessa matriz são apresentados novamente os diagramas de disperção, porém esses estão acompanhados por histogramas e valores obtidos nas correlações. Desta forma, é possível otimizar a visualização das características dessas variáveis em apenas uma figura. Na diagonal da figura observamos os histogramas formados das variáveis selecionadas. Na parte inferior são evidenciados os diagramas de dispersão e na parte superior são mostrados os valores obtidos das correlações.
+
+```{r matriz decorrelação variáveis 1e, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+library(dplyr)
+
+# Visualiza das variáveis Xn
+matiz_bdcp_2012_2022 <- bdcp_2012_2022 %>% filter(ano<="2021") %>% select(y1_ubp_tot, x1_ft_tot, x2_aport_in, x3_infra, x4_ft_tot_exp2, x5_aport_in_exp2)
+ggpairs(matiz_bdcp_2012_2022, title = "Matriz de correlações das variáveis selecionadas para o modelo.") + theme_bw()
+
+```
+
+### Fator de inflação da variância (VIF) 
+
+Foi calculado também os valores referentes ao fator de inflação da variância (VIF) das variáveis selecionadas, o qual apresenta características a respeito da multicolinearidade.
+```{r vif variáveis 1f, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+library(car)
+
+# Visualiza do VIF das variáveis Xn
+resultado_rlm_vif <- lm(y1_ubp_tot ~ x1_ft_tot + x2_aport_in + x3_infra, data=bdcp_2012_2022)
+
+vif_variaveis_modelo <- vif(resultado_rlm_vif)
+
+```
+
+Os valores obtidos para os fatores de inflação da variâncias (VIF) foram:
+
+
+"x1_ft_tot" =  **`r format(round(vif_variaveis_modelo[1], 10), nsmall = 10)`**.
+
+"x2_aport_in" = **`r format(round(vif_variaveis_modelo[2], 10), nsmall = 10)`**.
+
+"x3_infra" = **`r format(round(vif_variaveis_modelo[3], 10), nsmall = 10)`**.
+
+
+Todos os valores encontrados para VIF apresentam-se menores que 10, o que sinaliza que as variáveis não apresentam problemas de multicolinearidade.
+
+
+
+
+
+
+
+
+
+
+# Desenvolvimento do modelo e obtenção dos coeficientes da equação e valor-p. {.tabset .tabset-fade .tabset-pills}
+Com as variáveis explicativas selecionadas, parte-se para o desenvolvimento do modelo por meio da regressão linear múltipla com a utilização da função lm() inserindo as variáveis Xn em relação a variável resposta Yn . Os detalhes do resultado desta função estão expostos abaixo, em 2 modelos divididos por 2 conglomerados (1+2, 3).
+
+Análises por conglomerado 
+
+**OBS: SELECIONE O MODELO DE CADA CONGLOMERADO ABAIXO:**
+
+
+## Conglomerado 1 + 2 
+
+### A UF (**`r cg_sub_1_2`**) e a atividade de serviço (**`r atividade_raiz_legenda[1]`**) que estão sendo analisados nos teste a seguir.
+
+```{r Conglomerado 1, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#glimpse(bdcp_2012_2021_1)
+```
+
+### Tabela de dados do conglomerado (1+2)
+
+```{r Visualização banco 1, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+bd_tabela_dados <- function(bd_temp,bd_temp2){
+
+datatable(bd_temp,
+          caption = bd_temp2,
+          style = "auto", width = NULL, height = NULL, elementId = NULL,
+          extensions = 'Buttons', options = list(dom = 'Bfrtip',
+    buttons = c('copy', 'csv', 'excel', 'pdf', 'print'))) %>%
+    formatRound("y2_ubp_tot_raiz",1) %>%
+    formatRound("x1_ft_tot",1) %>%
+    formatRound("x2_aport_in",1) %>%
+    formatRound("x3_infra",1) %>%
+    formatRound("x4_ft_tot_exp2",1) %>%
+    formatRound("x5_aport_in_exp2",1)
+}
+bd_tabela_dados(bdcp_2012_2021_1,titulo_conglomerado[1])
+
+```
+
+### Ajustar o modelo linear sem intercepto
+
+```{r Ajustar mod1, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+mod1<-lm(y2_ubp_tot_raiz ~ x1_ft_tot + x2_aport_in + x3_infra + x4_ft_tot_exp2 + x5_aport_in_exp2 - 1,  bdcp_2012_2021_1) #Ajustar o modelo linear com intercepto
+summary(mod1)   #Obter as estatísticas descritivas do modelo ajustado
+#-1 ou +0 remover interceptor
+```
+OBS.: Interceptor removido
+
+### Interpretação do Modelo
+A função summary faz um resumo do modelo, irei detalhar as informações do summary e depois avaliaremos se o nosso modelo é adequado para realizar predições.
+
+Call: informações sobre função que foi criada, mostra as variáveis que foram utilizadas.
+
+Residuals: informações sobre os resíduos do modelo, mostra o resíduo mínimo, máximo, 1º quartil, 3º quartil e a mediana. O resíduo é a diferença entre o valor previsto e o valor real, um modelo adequado possui resíduos com distribuição normal e média dos resíduos próximo de zero.
+
+Coeficients: A coluna Estimate contém os coeficientes que formam a equação gerada pelo modelo onde:
+
+Intercept: é o ponto onde a linha cruza o eixo y, ou o valor de “a” na equação de regressão.
+
+“Xn variáveis usadas para predição”: é o coeficiente angular da equação de regressão, ou “b” na equação de regressão (o nome que aparece na linha é o mesmo da variável preditora).
+
+A coluna Std. Error é o erro padrão, uma medida de variabilidade na estimativa do coeficiente angular “a”, idealmente este valor deve ser menor que o do coeficiente.
+
+A coluna t value possui valores que são usados para calcular o p-value e os níveis de significância, eles definem a significância do coeficiente da variável considerada.
+
+A coluna Pr(>|t|) é o p-value do teste t, o p-value representa a probabilidade que a variável não seja relevante para o modelo, normalmente utiliza-se: p-valor < 0,05, a correlação entre as duas variáveis é significativa, p-valor > 0,05, a correlação entre as duas variáveis não é significativa.
+
+Os símbolos apresentados do lado direito do p-value mostram para qual significância os coeficientes são significativos, quanto mais asteriscos, maior a significância de acordo com o p-value, ou seja, quanto mais asteriscos maior a probabilidade de existir relacionamento entre as variáveis.
+
+A linha Signif. codes mostra os códigos utilizados para a significância, do mais significante (3 asteriscos) ao menos significante (espaço vazio).
+
+Residual Standar Error: representa o desvio padrão dos resíduos.
+
+Degrees of Freddom: diferença entre o número de observações da amostra e o número de variáveis no modelo.
+
+Multiple R-squared e Adjusted R-squared: definem a representatividade da variável x para prever a variável y, quanto maior melhor.
+
+F-statistics: É um teste que compara o desempenho de um modelo com mais parâmetros (variáveis preditoras) com um modelo com menos parâmetros. O p-value será alto se o modelo com menos parâmetros tiver desempenho melhor que um modelo com mais parâmetros e o p-value será mais baixo se o seu modelo com mais parâmetros tiver um desempenho melhor que um modelo com menos parâmetros. Em geral um modelo com mais parâmetros tem um desempenho melhor.
+
+### Estatística de descritivas - Extração dos resultados do modelo linear
+
+```{r extrair resultado mod1 1, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Obter as estatísticas descritivas do modelo ajustado
+mod1_r2 <- summary(mod1)$r.squared
+mod1_r2 <- round(mod1_r2*100, digits = 2)
+mod1_r2_adj <- summary(mod1)$adj.r.squared
+mod1_r2_adj <- round(mod1_r2_adj*100, digits = 2)
+
+mod1_r2_p_valor <- glance(mod1)$p.value
+
+#media erro quadrado
+mod1_emq <- sqrt(sum((mod1$residuals)^2)/mod1$df.residual)
+
+#RSE, erro padrao residuo
+mod1_rse <- (mod1_emq/mean(bdcp_2012_2021_1$y2_ubp_tot_raiz))*100 #3%, baixo.   
+#-1 ou +0 remover interceptor
+```
+
+Constata-se que o modelo utilizado com as seis variáveis referentes a série histórica explicaram (Adjusted R-squared) **`r mod1_r2`** % da variação dos dados da UBP Total, o conjunto do modelo foi significativo apresentando um p-valor de **`r format(round(mod1_r2_p_valor, 15), nsmall = 15)`**.
+
+### Interpretação do resultado do modelo (equação):
+O modelo apresentou que **`r mod1_r2`** % da variação dos dados de valores de UBP Total, de 2012 até 2021 foram explicados pelas variáveis Xn, desta maneira, a equação gerada do modelo de regressão linear múltipla com seus coeficientes está demonstrada abaixo, conforme o output, conforme a equação:.
+
+```{r extrair resultado mod1 2, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Obter as estatísticas descritivas do modelo ajustado
+equacao.mod1 <- as.formula(
+  paste0("Raiz_UBP_Total ~ ", round(mod1$coefficients, digits = 5), " + ",
+    paste(sprintf("%.5f * %s", mod1$coefficients[-1], names(coefficients(mod1)[-1])), collapse="+")
+  )
+)
+
+equacao.mod1
+
+#mod1$call
+#mod1[["call"]][["formula"]]
+
+```
+
+OBS:Equação Final, (re) inverter a equação final da y(UBP), uma vez que usamos o raiz de quadrada de y(ubp) na modelagem, elevando ao quadrado a parte da equação depois do sinal de igualdade, para voltar a UBP Total para o escala normal. 
+
+**modelo final da equação "UBP_Total ~ (x1_ft_tot + n * x2_aport_in + n * x3_infra + -n * x4_ft_tot_exp2 + -n * x5_aport_in_exp2)^2"** 
+
+
+### Intepretação dos coeficientes B do modelo.
+
+```{r extrair resultado mod1 6, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Obter as estatísticas descritivas do modelo ajustado
+
+coef.mod1.x1 <- mod1$coefficients[2]
+coef.mod1.x2 <- mod1$coefficients[3]
+coef.mod1.x3 <- mod1$coefficients[4]
+coef.mod1.x4 <- mod1$coefficients[5]
+coef.mod1.x5 <- mod1$coefficients[6]
+
+```
+
+X1 (x1_ft_tot): A cada ponto valor a mais da força de trabalho, observou-se em média um acréscimo/decréscimo de **`r format(round(coef.mod1.x1, 10), nsmall = 10)`** no valor da Raiz UBP Total.
+
+X2 (x2_aport_in): A cada ponto valor a mais de custeio, observou-se em média um acréscimo/decréscimo de **`r format(round(coef.mod1.x2, 10), nsmall = 10)`** no valor da Raiz UBP Total.
+
+X3 (x3_infra): A cada ponto valor a mais de infraestrutura, observou-se em média um acréscimo/decréscimo de **`r format(round(coef.mod1.x3, 10), nsmall = 10)`** no valor da Raiz UBP Total.
+
+X4 (x1_ft_tot^2): A cada ponto valor a mais da força de trabalho, observou-se em média um acréscimo/decréscimo de **`r format(round(coef.mod1.x4, 10), nsmall = 10) `** no valor da Raiz UBP Total.
+
+X5 (x2_aport_in^2): A cada ponto valor a mais de custeio, observou-se em média um acréscimo/decréscimo de **`r format(round(coef.mod1.x5, 10), nsmall = 10) `** no valor da Raiz UBP Total.
+
+### Como garantir que o modelo de regressão é adequado?
+Após realizarmos a regressão linear, devemos avaliar o modelo para garantir que os dados utilizados são adequados, que o modelo consegue representar os dados e principalmente devemos garantir que o modelo seja generalizável, ou seja, ser capaz de realizar predições para novos dados.
+
+Alguns pontos devem ser avaliados se quisermos garantir a precisão do modelo, o método dos mínimos quadrados nos fornece algumas diretrizes. Vamos avaliar o nosso modelo com os seguintes critérios:
+
+1 - Significância
+
+2 - Linearidade
+
+3 - Homocedasticidade dos resíudos (Variância constante dos erros experimentais)
+
+4 - Normalidade dos resíduos
+
+
+Todos os coeficiente de estimativa das variáveis explicativas utilizadas na regressão apresentaram valor de p significativo. Estes valores dos coeficientes de estimativa de cada uma das variáveis, bem como os respectivos valores de p estão listado a seguir.
+
+### 1 - Significância
+
+Os valores obtidos para os coeficientes de estimativa das variáveis foram:
+```{r extrair resultado mod1 3, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Obter as estatísticas descritivas do modelo ajustado
+mod1$coefficients
+```
+
+```{r extrair resultado mod1 4, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Obter as estatísticas descritivas do modelo ajustado
+
+p_value_coef_x1_ft_tot <- coef(summary(mod1))["x1_ft_tot","Pr(>|t|)"]
+
+p_value_coef_x2_aport_in <- coef(summary(mod1))["x2_aport_in","Pr(>|t|)"]
+
+p_value_coef_x3_infra <- coef(summary(mod1))["x3_infra","Pr(>|t|)"]
+
+p_value_coef_x4_ft_tot_exp2 <- coef(summary(mod1))["x4_ft_tot_exp2","Pr(>|t|)"]
+
+p_value_coef_x5_aport_in_exp2 <- coef(summary(mod1))["x5_aport_in_exp2","Pr(>|t|)"]
+
+```
+
+
+Os valores obtidos para o valor-p para o coeficiente das variáveis foram:
+
+
+"x1_ft_tot" =  **`r format(round(p_value_coef_x1_ft_tot, 10), nsmall = 10)`**.
+
+"x2_aport_in" = **`r format(round(p_value_coef_x2_aport_in, 10), nsmall = 10)`**.
+
+"x3_infra" = **`r format(round(p_value_coef_x3_infra, 10), nsmall = 10)`**.
+
+"x4_ft_tot_exp2" =  **`r format(round(p_value_coef_x4_ft_tot_exp2, 10), nsmall = 10)`**.
+
+"x5_aport_in_exp2" = **`r format(round(p_value_coef_x5_aport_in_exp2, 10), nsmall = 10)`**.
+
+### 2 - Linearidade
+
+A linearidade indica o grau de associação entre as variáveis testadas e pode ser representada pelo coeficiente de determinação R², vamos utilizar o comando “cor” nativo do R.
+
+```{r extrair resultado mod1 5, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+cor(bdcp_2012_2021_1[,5:10])
+```
+Podemos ver que existe uma correlação entre as variáveis, normalmente utilizamos a regra abaixo para avaliar os coeficientes de correlação:
+
+0.9 para mais ou para menos indica uma correlação muito forte.
+
+0.7 a 0.9 positivo ou negativo indica uma correlação forte.
+
+0.5 a 0.7 positivo ou negativo indica uma correlação moderada.
+
+0.3 a 0.5 positivo ou negativo indica uma correlação fraca.
+
+0 a 0.3 positivo ou negativo indica uma correlação desprezível.
+
+
+A linearidade também é representada pelo “R-squared e Adjusted R-squared” no commando summary do modelo que realizamos acima. Quanto maior o coeficiente de determinação (R), maior a representatividade da variável x para predizer o comportamento da variável y.
+
+### 3 - Homocedasticidade dos resíduos
+Podemos avaliar graficamente a hipótese da variância constante (homocedasticidade dos resíduos), criando um gráfico dos valores previstos e dos resíduos de cada previsão, os resíduos não devem apresentar nenhum padrão ou tendência.
+
+```{r Predição de resultados mod1 102, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+
+par(mfrow = c(2, 2))
+plot(mod1)
+
+```
+
+Complementa-se no diagnóstico dos resíduos do modelo a verificação da homocedasticidade. No qual busca-se entender se a variância dos resíduos se mostra constante a medida que os valores preditos pela rgressão aumentam.
+
+```{r extrair resultado mod1 9, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Obter as estatísticas descritivas do modelo ajustado
+graf_residuos2_mod1 <- function(bd_temp,bd_temp2){
+
+par(mfrow=c(3,2))
+
+plot(fitted(bd_temp),residuals(bd_temp),xlab="Valores Preditos pelo Modelo (VPM)",ylab="Resíduos", pch=16, main = "Resíduos e VPM")
+abline(h=0, col="red")
+
+plot(bd_temp2$x1_ft_tot, residuals(bd_temp),xlab="Força ",ylab="Residuos", pch=16)
+abline(h=0, col="red")
+
+plot(bd_temp2$x2_aport_in, residuals(bd_temp),xlab="AportIN ",ylab="Residuos", pch=16)
+abline(h=0, col="red")
+
+plot(bd_temp2$x3_infra, residuals(bd_temp),xlab="Infra ",ylab="Residuos", pch=16)
+abline(h=0, col="red")
+
+plot(bd_temp2$x1_ft_tot^2, residuals(bd_temp),xlab="Frota^2 ",ylab="Residuos", pch=16)
+abline(h=0, col="red")
+
+plot(bd_temp2$x2_aport_in^2, residuals(bd_temp),xlab="AportIN^2 ",ylab="Residuos", pch=16)
+abline(h=0, col="red")
+
+}
+graf_residuos2_mod1(mod1,bdcp_2012_2021_1)
+```
+
+
+### 4 - Normalidade dos Resíduos
+Um modelo de regressão linear deve apresentar também normalidade dos resíduos, ou seja, a distribuição dos resíduos deve se aproximar de uma distribuição normal. Primeiro vamos plotar os resíduos num gráfico e verificarmos se ele se parece com uma distribuição normal.
+
+Os resíduos são a diferença entre o valor da variável resposta UBP Total com o valor de UBP Total previsto pelo modelo. Nesta etapa se faz a avaliação visual da normalidade dos resíduos do modelo. Nas figuras abaixo são mostrados o gráfico quantil-quantil da normal e o histograma dos resultados dos resíduos.
+
+O gráfico quantil-quantil (q-q) apresenta no eixo y os quantis observados da amostra e o eixo x os quantis teóricos da distribuição normal padrão.
+
+O histograma apresenta a densidade de número de observações no eixo y. O eixo x mostra os valores dos resíduos. Neste histograma foi adicionado a linha em cor vermelha da densidade dos resíduos observados através do resultado do modelo da regressão linear múltipla.
+
+Ambas as figuras nos indicam que os dados dos resíduos da regressão apresentam normalidade.
+
+```{r extrair resultado mod1 8, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Obter as estatísticas descritivas do modelo ajustado
+graf_residuos_mod1 <- function(bd_temp){
+
+par(mfrow=c(1,2))
+qqnorm(bd_temp$residuals, ylab="Residuos",xlab="Quantis teoricos",main="Gráfico quantil-quantil")
+qqline(bd_temp$residuals, lty=1, col="red")
+
+hist(bd_temp$residuals, col = 'gray', xlab = 'Resíduos', ylab = 'Densidade de probabilidade', probability = TRUE, main = "Histograma dos Resíduos") 
+lines(density(bd_temp$residuals), col="red") 
+ }
+graf_residuos_mod1(mod1)
+```
+
+
+
+### Função predict com intervalos de confiança
+
+Função predict()
+Esta função é utilizada para realizar previsões na linguagem R.
+Se simplesmente passamos o modelo como parâmetro na função predict(), temos como retorno os valores de y, para os valores de x existentes
+
+```{r Predição de resultados mod1 10, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 10}
+
+prev_confidenc1<-data.frame(predict(mod1, newdata = bdcp_2012_2021_1[,5:10], interval = "confidence"))   #Cria intervalos de 95% os novos dados armazenados em prev_confidenc1
+prev_prediction1<- data.frame(predict(mod1, newdata = bdcp_2012_2021_1[,5:10], interval = "prediction")) #Cria intervalos de 95% para novas observações.
+
+prev_confidenc1$margem<-prev_confidenc1$upr/prev_confidenc1$fit
+prev_prediction1$margem<-prev_prediction1$upr/prev_prediction1$fit
+
+A1 <- data.frame(bdcp_2012_2021_1,prev_confidenc1)
+
+#write.xlsx(prev_confidenc1 / prev_prediction1, file = "bdcp_2012_2019_1_prev.xlsx") #Exportar para leitura em Excel
+```
+
+#### Summary "Confidence"
+```{r Summary Predição mod1 11, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 10}
+#SUMMERY "confidence"
+summary(prev_confidenc1$margem)
+
+#remove (summary_confidence)
+summary_confidence1 <- 0
+
+summary_confidence1$mean <- mean(prev_confidenc1$margem)
+summary_confidence1$median <- median(prev_confidenc1$margem)
+
+sprintf("%0.1f%%", (summary_confidence1$median-1) * 100)
+sprintf("%0.1f%%", (summary_confidence1$mean-1) * 100)
+```
+  
+A resposta da previsão é "Mediana" (**`r sprintf("%0.1f%%", (summary_confidence1$median-1) * 100)`**) e da "média" (**`r sprintf("%0.1f%%", (summary_confidence1$mean-1) * 100)`**) da **Função predict** com método de intervalo **"confidence"**.
+
+
+```{r graficos previsão mod1 12, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+
+plot(prev_confidenc1$fit,
+     type = "p",
+     lwd = 2,
+     main = "Valores Previstos e Intervalos Inf. e Sup. da Previsão (confidence)",
+     ylim = c(min(prev_confidenc1$lwr), max(prev_confidenc1$upr)+2),
+     ylab = "Previsto")
+lines(prev_confidenc1$lwr,type = "l",lwd = 2, col = "red")
+lines(prev_confidenc1$upr,type = "l",lwd = 2, col = "blue")
+
+#Legenda
+legend(x = "bottom", 0.5,500000.5,legend = c("Previsto","Banda Inf.","Banda Sup."),
+       col = c("purple","red","blue"), lty = 1:1, cex = 0.5, horiz = TRUE)
+
+#Teste se o valor real fica entre as bandas
+
+lines(bdcp_2012_2021_1$y2_ubp_tot_raiz,type = "l",lwd = 2, col = "purple")
+```
+
+#### Summary "Prediction"
+```{r Summary Predição mod1 13, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}  
+#SUMMERY "prediction"
+summary(prev_prediction1$margem)
+
+summary_prev_prediction1 <- 0
+
+summary_prev_prediction1$mean <- mean(prev_prediction1$margem)
+summary_prev_prediction1$median <- median(prev_prediction1$margem)
+
+sprintf("%0.1f%%", (summary_prev_prediction1$median-1) * 100)
+sprintf("%0.1f%%", (summary_prev_prediction1$mean-1) * 100)
+```
+
+A resposta da previsão é "Mediana (**`r sprintf("%0.1f%%", (summary_prev_prediction1$median-1) * 100)`**) e da "média" (**`r sprintf("%0.1f%%", (summary_prev_prediction1$mean-1) * 100)`**) da **Função predict** com método de intervalo **"prediction"**.
+
+```{r graficos previsão mod1 14, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+
+plot(prev_prediction1$fit,
+     type = "p",
+     lwd = 2,
+     main = "Valores Previstos e Intervalos Inf. e Sup. da Previsão (prediction)",
+     ylim = c(min(prev_prediction1$lwr), max(prev_prediction1$upr)+2),
+     ylab = "Previsto")
+lines(prev_prediction1$lwr,type = "l",lwd = 2, col = "red")
+lines(prev_prediction1$upr,type = "l",lwd = 2, col = "blue")
+
+
+for (i in seq(1,dim(prev_prediction1)[1])){
+  rect(i, prev_prediction1$lwr[i], i, prev_prediction1$upr[i], lty = 2)
+}
+
+#Legenda
+legend(x = "bottom", 0.5,500000.5,legend = c("Previsto","Banda Inf.","Banda Sup."),
+       col = c("black","red","blue"), lty = 1:1, cex = 0.5, horiz = TRUE)
+
+#Teste se o valor real fica entre as bandas
+
+lines(bdcp_2012_2021_1$y2_ubp_tot_raiz,type = "l",lwd = 2, col = "purple")
+```
+
+
+
+
+
+
+
+
+
+
+## Conglomerado 3
+
+### A UF (**`r cg_sub_3`**) e a atividade de serviço (**`r atividade_legenda[1]`**) que estão sendo analisados nos teste a seguir.
+
+```{r Conglomerado 3, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#glimpse(bdcp_2012_2021_2)
+```
+
+### Tabela de dados do conglomerado (3)
+
+```{r Visualização banco 3, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+bd_tabela_dados <- function(bd_temp,bd_temp2){
+
+datatable(bd_temp,
+          caption = bd_temp2,
+          style = "auto", width = NULL, height = NULL, elementId = NULL,
+          extensions = 'Buttons', options = list(dom = 'Bfrtip',
+    buttons = c('copy', 'csv', 'excel', 'pdf', 'print'))) %>%
+    formatRound("y1_ubp_tot",1) %>%
+    formatRound("x1_ft_tot",1) %>%
+    formatRound("x2_aport_in",1)
+ }
+bd_tabela_dados(bdcp_2012_2021_2,titulo_conglomerado[2])
+
+```
+
+### Ajustar o modelo linear sem intercepto
+
+```{r Ajustar mod2, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+mod2<-lm(y1_ubp_tot ~ x1_ft_tot + x2_aport_in - 1,  bdcp_2012_2021_2) #Ajustar o modelo linear com intercepto
+summary(mod2)   #Obter as estatísticas descritivas do modelo ajustado
+#-1 ou +0 remover interceptor
+```
+OBS.: Interceptor removido
+
+### Interpretação do Modelo
+A função summary faz um resumo do modelo, irei detalhar as informações do summary e depois avaliaremos se o nosso modelo é adequado para realizar predições.
+
+Call: informações sobre função que foi criada, mostra as variáveis que foram utilizadas.
+
+Residuals: informações sobre os resíduos do modelo, mostra o resíduo mínimo, máximo, 1º quartil, 3º quartil e a mediana. O resíduo é a diferença entre o valor previsto e o valor real, um modelo adequado possui resíduos com distribuição normal e média dos resíduos próximo de zero.
+
+Coeficients: A coluna Estimate contém os coeficientes que formam a equação gerada pelo modelo onde:
+
+Intercept: é o ponto onde a linha cruza o eixo y, ou o valor de “a” na equação de regressão.
+
+“Xn variáveis usadas para predição”: é o coeficiente angular da equação de regressão, ou “b” na equação de regressão (o nome que aparece na linha é o mesmo da variável preditora).
+
+A coluna Std. Error é o erro padrão, uma medida de variabilidade na estimativa do coeficiente angular “a”, idealmente este valor deve ser menor que o do coeficiente.
+
+A coluna t value possui valores que são usados para calcular o p-value e os níveis de significância, eles definem a significância do coeficiente da variável considerada.
+
+A coluna Pr(>|t|) é o p-value do teste t, o p-value representa a probabilidade que a variável não seja relevante para o modelo, normalmente utiliza-se: p-valor < 0,05, a correlação entre as duas variáveis é significativa, p-valor > 0,05, a correlação entre as duas variáveis não é significativa.
+
+Os símbolos apresentados do lado direito do p-value mostram para qual significância os coeficientes são significativos, quanto mais asteriscos, maior a significância de acordo com o p-value, ou seja, quanto mais asteriscos maior a probabilidade de existir relacionamento entre as variáveis.
+
+A linha Signif. codes mostra os códigos utilizados para a significância, do mais significante (3 asteriscos) ao menos significante (espaço vazio).
+
+Residual Standar Error: representa o desvio padrão dos resíduos.
+
+Degrees of Freddom: diferença entre o número de observações da amostra e o número de variáveis no modelo.
+
+Multiple R-squared e Adjusted R-squared: definem a representatividade da variável x para prever a variável y, quanto maior melhor.
+
+F-statistics: É um teste que compara o desempenho de um modelo com mais parâmetros (variáveis preditoras) com um modelo com menos parâmetros. O p-value será alto se o modelo com menos parâmetros tiver desempenho melhor que um modelo com mais parâmetros e o p-value será mais baixo se o seu modelo com mais parâmetros tiver um desempenho melhor que um modelo com menos parâmetros. Em geral um modelo com mais parâmetros tem um desempenho melhor.
+
+### Estatística de descritivas - Extração dos resultados do modelo linear
+
+```{r extrair resultado mod2 1, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Obter as estatísticas descritivas do modelo ajustado
+mod2_r2 <- summary(mod2)$r.squared
+mod2_r2 <- round(mod2_r2*100, digits = 2)
+mod2_r2_adj <- summary(mod2)$adj.r.squared
+mod2_r2_adj <- round(mod2_r2_adj*100, digits = 2)
+
+mod2_r2_p_valor <- glance(mod2)$p.value
+
+#media erro quadrado
+mod2_emq <- sqrt(sum((mod2$residuals)^2)/mod2$df.residual)
+
+#RSE, erro padrao residuo
+mod2_rse <- (mod2_emq/mean(bdcp_2012_2021_2$y1_ubp_tot))*100 #3%, baixo.   
+#-1 ou +0 remover interceptor
+```
+
+Constata-se que o modelo utilizado com as seis variáveis referentes a série histórica explicaram (Adjusted R-squared) **`r mod2_r2`** % da variação dos dados da UBP Total, o conjunto do modelo foi significativo apresentando um p-valor de **`r format(round(mod2_r2_p_valor, 15), nsmall = 15)`**.
+
+### Interpretação do resultado do modelo (equação):
+O modelo apresentou que **`r mod2_r2`** % da variação dos dados de valores de UBP Total, de 2012 até 2021 foram explicados pelas variáveis Xn, desta maneira, a equação gerada do modelo de regressão linear múltipla com seus coeficientes está demonstrada abaixo, conforme o output, conforme a equação:.
+
+```{r extrair resultado mod2 2, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Obter as estatísticas descritivas do modelo ajustado
+equacao.mod2 <- as.formula(
+  paste0("UBP_Total ~ ", round(mod2$coefficients, digits = 5), " + ", 
+    paste(sprintf("%.5f * %s", mod2$coefficients[-1], names(coefficients(mod2)[-1])), collapse="+")
+  )
+)
+
+equacao.mod2
+```
+
+OBS: Equação final. 
+
+**modelo final da equação "UBP_Total ~ (x1_ft_tot + -n * x2_aport_in)"** 
+
+### Intepretação dos coeficientes B do modelo.
+
+```{r extrair resultado mod2 6, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Obter as estatísticas descritivas do modelo ajustado
+
+coef.mod2.x1 <- mod2$coefficients[2]
+coef.mod2.x2 <- mod2$coefficients[3]
+
+```
+
+X1 (x1_ft_tot): A cada ponto valor a mais da força de trabalho, observou-se em média um acréscimo/decréscimo de **`r format(round(coef.mod2.x1, 10), nsmall = 10)`** no valor da Raiz UBP Total.
+
+X2 (x2_aport_in): A cada ponto valor a mais de custeio, observou-se em média um acréscimo/decréscimo de **`r format(round(coef.mod2.x2, 10), nsmall = 10)`** no valor da Raiz UBP Total.
+
+
+### Como garantir que o modelo de regressão é adequado?
+Após realizarmos a regressão linear, devemos avaliar o modelo para garantir que os dados utilizados são adequados, que o modelo consegue representar os dados e principalmente devemos garantir que o modelo seja generalizável, ou seja, ser capaz de realizar predições para novos dados.
+
+Alguns pontos devem ser avaliados se quisermos garantir a precisão do modelo, o método dos mínimos quadrados nos fornece algumas diretrizes. Vamos avaliar o nosso modelo com os seguintes critérios:
+
+1 - Significância
+
+2 - Linearidade
+
+3 - Homocedasticidade dos resíudos (Variância constante dos erros experimentais)
+
+4 - Normalidade dos resíduos
+
+
+Todos os coeficiente de estimativa das variáveis explicativas utilizadas na regressão apresentaram valor de p significativo. Estes valores dos coeficientes de estimativa de cada uma das variáveis, bem como os respectivos valores de p estão listado a seguir.
+
+### 1 - Significância
+
+Os valores obtidos para os coeficientes de estimativa das variáveis foram:
+```{r extrair resultado mod2 3, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Obter as estatísticas descritivas do modelo ajustado
+mod2$coefficients
+```
+
+```{r extrair resultado mod2 4, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Obter as estatísticas descritivas do modelo ajustado
+
+p_value_coef_x1_ft_tot <- coef(summary(mod2))["x1_ft_tot","Pr(>|t|)"]
+
+p_value_coef_x2_aport_in <- coef(summary(mod2))["x2_aport_in","Pr(>|t|)"]
+
+```
+
+
+Os valores obtidos para o valor-p para o coeficiente das variáveis foram:
+
+
+"x1_ft_tot" =  **`r format(round(p_value_coef_x1_ft_tot, 10), nsmall = 10)`**.
+
+"x2_aport_in" = **`r format(round(p_value_coef_x2_aport_in, 10), nsmall = 10)`**.
+
+### 2 - Linearidade
+
+A linearidade indica o grau de associação entre as variáveis testadas e pode ser representada pelo coeficiente de determinação R², vamos utilizar o comando “cor” nativo do R.
+
+```{r extrair resultado mod2 5, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+cor(bdcp_2012_2021_2[,5:7])
+```
+Podemos ver que existe uma correlação entre as variáveis, normalmente utilizamos a regra abaixo para avaliar os coeficientes de correlação:
+
+0.9 para mais ou para menos indica uma correlação muito forte.
+
+0.7 a 0.9 positivo ou negativo indica uma correlação forte.
+
+0.5 a 0.7 positivo ou negativo indica uma correlação moderada.
+
+0.3 a 0.5 positivo ou negativo indica uma correlação fraca.
+
+0 a 0.3 positivo ou negativo indica uma correlação desprezível.
+
+
+A linearidade também é representada pelo “R-squared e Adjusted R-squared” no commando summary do modelo que realizamos acima. Quanto maior o coeficiente de determinação (R), maior a representatividade da variável x para predizer o comportamento da variável y.
+
+### 3 - Homocedasticidade dos resíduos
+Podemos avaliar graficamente a hipótese da variância constante (homocedasticidade dos resíduos), criando um gráfico dos valores previstos e dos resíduos de cada previsão, os resíduos não devem apresentar nenhum padrão ou tendência.
+
+```{r Predição de resultados mod2 102, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+
+par(mfrow = c(2, 2))
+plot(mod2)
+
+```
+
+Complementa-se no diagnóstico dos resíduos do modelo a verificação da homocedasticidade. No qual busca-se entender se a variância dos resíduos se mostra constante a medida que os valores preditos pela rgressão aumentam.
+
+```{r extrair resultado mod2 9, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Obter as estatísticas descritivas do modelo ajustado
+graf_residuos2_mod2 <- function(bd_temp,bd_temp2){
+
+par(mfrow=c(2,2))
+
+plot(fitted(bd_temp),residuals(bd_temp),xlab="Valores Preditos pelo Modelo (VPM)",ylab="Resíduos", pch=16, main = "Resíduos e VPM")
+abline(h=0, col="red")
+
+plot(bd_temp2$x1_ft_tot, residuals(bd_temp),xlab="Força ",ylab="Residuos", pch=16)
+abline(h=0, col="red")
+
+plot(bd_temp2$x2_aport_in, residuals(bd_temp),xlab="AportIN ",ylab="Residuos", pch=16)
+abline(h=0, col="red")
+
+}
+graf_residuos2_mod2(mod2,bdcp_2012_2021_2)
+```
+
+
+### 4 - Normalidade dos Resíduos
+Um modelo de regressão linear deve apresentar também normalidade dos resíduos, ou seja, a distribuição dos resíduos deve se aproximar de uma distribuição normal. Primeiro vamos plotar os resíduos num gráfico e verificarmos se ele se parece com uma distribuição normal.
+
+Os resíduos são a diferença entre o valor da variável resposta UBP Total com o valor de UBP Total previsto pelo modelo. Nesta etapa se faz a avaliação visual da normalidade dos resíduos do modelo. Nas figuras abaixo são mostrados o gráfico quantil-quantil da normal e o histograma dos resultados dos resíduos.
+
+O gráfico quantil-quantil (q-q) apresenta no eixo y os quantis observados da amostra e o eixo x os quantis teóricos da distribuição normal padrão.
+
+O histograma apresenta a densidade de número de observações no eixo y. O eixo x mostra os valores dos resíduos. Neste histograma foi adicionado a linha em cor vermelha da densidade dos resíduos observados através do resultado do modelo da regressão linear múltipla.
+
+Ambas as figuras nos indicam que os dados dos resíduos da regressão apresentam normalidade.
+
+```{r extrair resultado mod2 8, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+#Obter as estatísticas descritivas do modelo ajustado
+graf_residuos_mod2 <- function(bd_temp){
+
+par(mfrow=c(1,2))
+qqnorm(bd_temp$residuals, ylab="Residuos",xlab="Quantis teoricos",main="Gráfico quantil-quantil")
+qqline(bd_temp$residuals, lty=1, col="red")
+
+hist(bd_temp$residuals, col = 'gray', xlab = 'Resíduos', ylab = 'Densidade de probabilidade', probability = TRUE, main = "Histograma dos Resíduos") 
+lines(density(bd_temp$residuals), col="red") 
+ }
+graf_residuos_mod2(mod2)
+```
+
+
+
+### Função predict com intervalos de confiança
+
+Função predict()
+Esta função é utilizada para realizar previsões na linguagem R.
+Se simplesmente passamos o modelo como parâmetro na função predict(), temos como retorno os valores de y, para os valores de x existentes
+
+```{r Predição de resultados mod2 10, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 10}
+
+prev_confidenc1<-data.frame(predict(mod2, newdata = bdcp_2012_2021_2[,5:7], interval = "confidence"))   #Cria intervalos de 95% os novos dados armazenados em prev_confidenc1
+prev_prediction1<- data.frame(predict(mod2, newdata = bdcp_2012_2021_2[,5:7], interval = "prediction")) #Cria intervalos de 95% para novas observações.
+
+prev_confidenc1$margem<-prev_confidenc1$upr/prev_confidenc1$fit
+prev_prediction1$margem<-prev_prediction1$upr/prev_prediction1$fit
+
+A1 <- data.frame(bdcp_2012_2021_2,prev_confidenc1)
+
+#write.xlsx(prev_confidenc1 / prev_prediction1, file = "bdcp_2012_2019_1_prev.xlsx") #Exportar para leitura em Excel
+```
+
+#### Summary "Confidence"
+```{r Summary Predição mod2 11, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 10}
+#SUMMERY "confidence"
+summary(prev_confidenc1$margem)
+
+#remove (summary_confidence)
+summary_confidence1 <- 0
+
+summary_confidence1$mean <- mean(prev_confidenc1$margem)
+summary_confidence1$median <- median(prev_confidenc1$margem)
+
+sprintf("%0.1f%%", (summary_confidence1$median-1) * 100)
+sprintf("%0.1f%%", (summary_confidence1$mean-1) * 100)
+```
+  
+A resposta da previsão é "Mediana" (**`r sprintf("%0.1f%%", (summary_confidence1$median-1) * 100)`**) e da "média" (**`r sprintf("%0.1f%%", (summary_confidence1$mean-1) * 100)`**) da **Função predict** com método de intervalo **"confidence"**.
+
+
+```{r graficos previsão mod2 12, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+
+plot(prev_confidenc1$fit,
+     type = "p",
+     lwd = 2,
+     main = "Valores Previstos e Intervalos Inf. e Sup. da Previsão (confidence)",
+     ylim = c(min(prev_confidenc1$lwr), max(prev_confidenc1$upr)+2),
+     ylab = "Previsto")
+lines(prev_confidenc1$lwr,type = "l",lwd = 2, col = "red")
+lines(prev_confidenc1$upr,type = "l",lwd = 2, col = "blue")
+
+#Legenda
+legend(x = "bottom", 0.5,500000.5,legend = c("Previsto","Banda Inf.","Banda Sup."),
+       col = c("purple","red","blue"), lty = 1:1, cex = 0.5, horiz = TRUE)
+
+#Teste se o valor real fica entre as bandas
+
+lines(bdcp_2012_2021_2$y1_ubp_tot,type = "l",lwd = 2, col = "purple")
+```
+
+#### Summary "Prediction"
+```{r Summary Predição mod2 13, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}  
+#SUMMERY "prediction"
+summary(prev_prediction1$margem)
+
+summary_prev_prediction1 <- 0
+
+summary_prev_prediction1$mean <- mean(prev_prediction1$margem)
+summary_prev_prediction1$median <- median(prev_prediction1$margem)
+
+sprintf("%0.1f%%", (summary_prev_prediction1$median-1) * 100)
+sprintf("%0.1f%%", (summary_prev_prediction1$mean-1) * 100)
+```
+
+A resposta da previsão é "Mediana (**`r sprintf("%0.1f%%", (summary_prev_prediction1$median-1) * 100)`**) e da "média" (**`r sprintf("%0.1f%%", (summary_prev_prediction1$mean-1) * 100)`**) da **Função predict** com método de intervalo **"prediction"**.
+
+```{r graficos previsão mod2 14, warning = FALSE, message = FALSE, echo = FALSE, fig.width = 10, fig.height = 5}
+
+plot(prev_prediction1$fit,
+     type = "p",
+     lwd = 2,
+     main = "Valores Previstos e Intervalos Inf. e Sup. da Previsão (prediction)",
+     ylim = c(min(prev_prediction1$lwr), max(prev_prediction1$upr)+2),
+     ylab = "Previsto")
+lines(prev_prediction1$lwr,type = "l",lwd = 2, col = "red")
+lines(prev_prediction1$upr,type = "l",lwd = 2, col = "blue")
+
+
+for (i in seq(1,dim(prev_prediction1)[1])){
+  rect(i, prev_prediction1$lwr[i], i, prev_prediction1$upr[i], lty = 2)
+}
+
+#Legenda
+legend(x = "bottom", 0.5,500000.5,legend = c("Previsto","Banda Inf.","Banda Sup."),
+       col = c("black","red","blue"), lty = 1:1, cex = 0.5, horiz = TRUE)
+
+#Teste se o valor real fica entre as bandas
+
+lines(bdcp_2012_2021_2$y1_ubp_tot,type = "l",lwd = 2, col = "purple")
+```
+
+
+
+# Diversos {.tabset .tabset-fade}
+
+## Créditos - Participantes do Projeto Capacidade Produtiva:  
+  
+**PATROCINADORES DO PROJETO**  
+***
+
+**COORDENADORES DO PROJETO**  
+*** 
+
+**MEMBROS DO PROJETO**  
+Allan Batista Martins,  
+***
+  
+
+
+## Material de Apoio
+
+* Avaliando um Modelo de Regressão Linear com Linguagem R:
+[André Freire de Freitas](https://rpubs.com/andrehofreire/LinearRegressionR)
+
+* Disciplina de Machine Learning:
+[Jonatha Pereira Silveira, Leonardo Reffatti, Vinicius Bresolin Gonçalves](https://rpubs.com/leonardoreffatti/677180)
+
+* Regressão linear com linguagem R:
+[Didática Tech](https://didatica.tech/regressao-linear-com-linguagem-r/)  
+
+* Curso de R para Finanças Quantitativas:
+[Outspoken Market](https://www.youtube.com/watch?v=tJr_krsgAxc&list=PLudZsmb7OiyBmHA6gZFi1-D1auqCVIMWl)  
+
+* Função predict intervalos de confiança e implementação do modelo de Regressão Linear: 
+[Outspoken Market](https://youtu.be/jCjpP3H91tM) 
+
+* Transformação Box Cox no R:
+[Chave R](https://youtu.be/cefH9IsN62E) 
+
+* Regressão linear múltipla no R: 
+[Fernanda Peres](https://youtu.be/4YLOwyx_hxo)  
+
+* PLAYLIST - Criando gráficos no R com o ggplot2 (Parte 1 ao 2):  
+[Fernanda Peres](https://youtu.be/DYsPRa3vpf0)  
+
+* PLAYLIST - R Markdown: Gerando relatórios usando o R (Parte 1 ao 5):  
+[Fernanda Peres](https://youtu.be/obxa5VH4WvY)  
+
+* Minicurso R - UFPR: 
+[UFPR](https://youtu.be/obxa5VH4WvY)  
+
+* R Markdown: The Definitive Guide:   
+[Yihui Xie, J. J. Allaire, Garrett Grolemund](https://bookdown.org/yihui/rmarkdown/)
+
+<!-- * xxx: -->
+<!-- [xxx](xxxx)   -->
+
+  
